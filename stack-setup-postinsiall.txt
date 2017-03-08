@@ -1,0 +1,60 @@
+2016-8-31 https://maths-moodle.maths.ed.ac.uk/live/
+Post-install setup
+
+(1) Check STACK healthcheck and optimise.
+1.1 Set Maxima version 5.34.1
+1.2 Set qtype_stack | maximalibraries to be empty
+1.3 Optimise Maxima using auto "Create Maxima image" from the healthcheck.
+
+1.4 Check the version of MathJax in the filter is 2.6 or later to fix the Chrome vertical bar bug.
+
+(2) Create a users
+
+(2.1) "csangwin" on the Moodle admin list (Using the Admin user to
+create courses creates problems with backup/restore later. They
+always try to restore as the "admin" user elsewhere.)
+
+(2.2) Generic name: learnlti
+Email: learnservice@ed.ac.uk
+
+Add both to site admins.
+
+(3) Important
+If you are using Moodle 2.2 or above, please, be sure that this option:
+
+Home / > Site administration / > Security / > HTTP security
+Allow frame embedding
+
+(4) Disable messages.
+
+Site administration -> Plugins -> Blocks -> Manage Blocks
+Then hide the following: "Blog menu", "Blog tags", "Messages".
+
+I've also removed the following:
+Site administration -> Plugins -> Message outputs -> Default message outputs
+Disable: Personal messages between users
+
+(5) Create ILA course.
+
+5.1 Enable self-registration.
+Dashboard ► Courses ► 2016-17 ILA ► Users ► Enrolment methods
+Self enrolment (Student)
+
+5.2 Activate LTI Provider
+
+Tool to be provided: Course
+Launch URL: https://maths-moodle.maths.ed.ac.uk/live/local/ltiprovider/tool.php?id=1
+Shared Secret: 93fddd9fed6ea826d1ff587621f2a771
+
+5.3 Set User default values for country to "UK".
+
+(3) Tidy up the home page.
+
+---------------------------
+
+(3) Manage authentication
+
+Dashboard / ► Site administration / ► Plugins / ► Authentication / ► Manage authentication
+
+Available authentication plugins.
+Make LTI available.
