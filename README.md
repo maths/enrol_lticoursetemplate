@@ -7,6 +7,8 @@ This GIT repro is to share server setup and configuration for the STACK servers 
 
 For more information about STACK contact C.J.Sangwin@ed.ac.uk.
 
+More information about this is contained in the Edinburgh WIKI:  https://www.wiki.ed.ac.uk/display/STACK/
+
 ## stack.maths.ed.ac.uk
 
 The purpose of this server is as a public demonstration of the STACK system.   
