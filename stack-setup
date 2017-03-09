@@ -32,8 +32,14 @@
 # Changelog (newest first)
 ######################################################################
 #
-VERSION="028"
-# 028. 2016-07-12 csangwin      Updated version numbers for 2016-17 teaching cycle.
+VERSION="034"
+# 034. 2016-12-05 dmarsh        Now add custom PHP config to a separate file
+# 033. 2016-09-12 dmarsh        Added accidentally omitted delay pause in backup cronjob
+# 032. 2016-09-09 dmarsh        Reverted to Moodle 3.0 stable for testing 
+# 031. 2016-09-09 dmarsh        Updated LTI Provider from moodle30 to moodle31
+# 030. 2016-08-30 dmarsh        Create minimal 'homepage' for non-demo sites
+# 029. 2016-08-30 dmarsh        Ask whether to create/overwrite https config file
+# 028. 2016-08-23 csangwin      Updated version numbers for 2016-17 teaching cycle.
 # 027. 2016-07-12 dmarsh        Added config for https
 # 026. 2016-05-23 dmarsh        Updated file path saved in moodle-data backup tarball
 # 025. 2016-05-19 dmarsh        Minor presentational change to initial variable sanity check output
@@ -141,15 +147,21 @@ else
     echo ">> The name of this Stack service is: $STACK_SERVICE"
 fi
 
-#STACK_FULLNAME (entered later)
-#STACK_SHORTNAME (entered later)
-#STACK_SUMMARY (entered later)
-STACK_WEB_ROOT=/var/www/html/$STACK_SERVICE
 
-
+# Apache settings
 # Debian uses 'www-data' as the apache user, see: /etc/apache2/envvars
 APACHE_USER=www-data
 APACHE_GROUP=www-data
+
+WEB_ROOT_DEFAULT=/var/www/html
+
+
+#STACK_FULLNAME (entered later)
+#STACK_SHORTNAME (entered later)
+#STACK_SUMMARY (entered later)
+STACK_WEB_ROOT=${WEB_ROOT_DEFAULT}/${STACK_SERVICE}
+
+
 
 # This is a standard system path on Debian (Red Hat uses /var/spool/cron/ instead)
 APACHE_CRONTAB=/var/spool/cron/crontabs/$APACHE_USER
@@ -160,7 +172,9 @@ CRONJOBS_DIR=/local/cronjobs
 
 
 # Debian PHP config file
-PHP_CFG=/etc/php5/apache2/php.ini
+#PHP_CFG=/etc/php5/apache2/php.ini
+# Debian PHP config folder and custom config file
+PHP_CFG=/etc/php5/apache2/conf.d/00-maths.ini
 
 # Debian SSL keys dir
 SSL_DIR_KEYS=/etc/ssl/private
@@ -181,9 +195,15 @@ APACHE_CONF_SSL_NAME="${STACK_HOST}-ssl"
 
 
 # Moodle version to install
+#
+# Specific version releases do not change after release
+# (May be needed if later 'fixes' tickle certain bugs)
+# MOODLE_VERSION=v3.1.1
+#
+# The STABLE release is rebuilt every week and incorporates subsequent fixes
 #MOODLE_VERSION=MOODLE_31_STABLE
-# Now using a specific version (not the (changing) latest build of the release)
-MOODLE_VERSION=v3.1.1
+MOODLE_VERSION=MOODLE_30_STABLE
+
 
 # Unique DB user for each Moodle instance
 MOODLE_DB_USER=moodle_${STACK_SERVICE}
@@ -197,7 +217,8 @@ MOODLE_ADMIN_EMAIL="moodle@maths.ed.ac.uk"
 MOODLE_DATA_DIR=/var/data/${MOODLE_DB_USER}/${STACK_SERVICE}
 
 # LTI Provider URI/version
-MOODLE_PLUGIN_LTI="https://moodle.org/plugins/download.php/10423/local_ltiprovider_moodle30_2016020100.zip"
+# Updated from moodle30 to moodle31
+MOODLE_PLUGIN_LTI="https://moodle.org/plugins/download.php/10423/local_ltiprovider_moodle31_2016020100.zip"
 
 # Stack package version
 STACK_VERSION=v3.5.5
@@ -248,7 +269,8 @@ install()
     # PHP config changes
     #-----------------------------------------------------------
     # Set PHP timezone
-    /bin/cp -a "$PHP_CFG" "$PHP_CFG"."$TIMESTAMP"
+    # (Don't backup the file any more as we are not writing to the main PHP config file any more)
+    #/bin/cp -a "$PHP_CFG" "$PHP_CFG"."$TIMESTAMP"
     /bin/cat <<EOT >> "$PHP_CFG"
 ;$MARK_START Set PHP timezone
 [Date]
@@ -330,6 +352,39 @@ EOT
     /bin/mkdir -p $STACK_WEB_ROOT
     /bin/chown $APACHE_USER $STACK_WEB_ROOT
 
+
+    # Create minimal home page for sites other than the public demo site
+    if [ -d "${WEB_ROOT_DEFAULT}" ]; then
+
+        if [ `/bin/hostname -A` != "stack.maths.ed.ac.uk" ]; then
+            /bin/cat <<EOT > ${WEB_ROOT_DEFAULT}/index.html
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+<title>
+Stack
+</title>
+
+</head>
+<!-- **** ********* ********* ********* ********* ********* ****** -->
+<body>
+
+<h1>Stack</h1>
+
+<p>
+Please ask your course instructor for details about how to access this service.
+</p>
+
+</body>
+</html>
+EOT
+        fi
+    fi
+
+
+
     # Create folder for Moodle data
     /bin/mkdir -p $MOODLE_DATA_DIR
     /bin/chmod 0770 $MOODLE_DATA_DIR
@@ -402,22 +457,31 @@ EOT
         echo "**** Press enter AFTER you have copied the cert files to the server."; read CONTINUE
 
 
-        echo ">> Creating SSL config file for website: ${STACK_HOST} "
+        echo ">> Setting up SSL config for website: ${STACK_HOST} "
 
-        /bin/cp -a ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_DEFAULT} \
-            ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_NAME}.conf
+        echo "**** Do you want to create/overwrite the (possibly existing) site SSL config file? [yN]"
+        read CONFIRM
 
-        echo "**** Now edit the website Apache config file"
+        if [ "$CONFIRM" = "y" ]
+        then
+            echo ">> Creating new SSL config file for website: ${STACK_HOST} "
+
+            /bin/cp -a ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_DEFAULT} \
+                ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_NAME}.conf
+        fi
+
+
+        echo "**** Now edit the site SSL config file"
         echo "**** ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_NAME}.conf"
         echo "**** and comment out the fake cert lines and insert: "
 
-        echo "SSLCertificateFile        ${SSL_DIR_CERTS}/{$SSL_CERT}"
-        echo "SSLCertificateKeyFile     ${SSL_DIR_KEYS}/{$SSL_KEY}"
-        echo "SSLCertificateChainFile   ${SSL_DIR_CERTS}/{$SSL_CHAIN}"
+        echo "SSLCertificateFile        ${SSL_DIR_CERTS}/${SSL_CERT}"
+        echo "SSLCertificateKeyFile     ${SSL_DIR_KEYS}/${SSL_KEY}"
+        echo "SSLCertificateChainFile   ${SSL_DIR_CERTS}/${SSL_CHAIN}"
 
-        echo "**** Press enter AFTER you have edited the Apache config file."; read CONTINUE
+        echo "**** Press enter AFTER you have edited the site SSL config file."; read CONTINUE
 
-        echo ">> Enabling SSL config file for website: ${STACK_HOST} "
+        echo ">> Enabling SSL config file (and restarting webserver) for website: ${STACK_HOST} "
         /usr/sbin/a2ensite ${APACHE_CONF_SSL_NAME}
         /usr/sbin/apache2ctl graceful
 
@@ -425,6 +489,7 @@ EOT
         PROTO=http
         PORT=80
     fi
+
 
     STACK_URI=${PROTO}://${STACK_HOST}.${STACK_DOMAIN}/${STACK_SERVICE}
     echo ">> Website address is: $STACK_URI"
@@ -552,10 +617,10 @@ EOT
     #-----------------------------------------------------------
     /bin/mkdir -p $CRONJOBS_DIR/root
 
-    /bin/cat <<EOT > "$BKP_SDATA_SCRIPT"
+    /bin/cat <<EOT > "${BKP_SDATA_SCRIPT}"
 #!/bin/sh
 # This file is autogenerated by 'stack-setup', do not edit
-# This is: $BKP_SDATA_SCRIPT
+# This is: ${BKP_SDATA_SCRIPT}
 #
 # In the file generator:
 # Backslash-escape values that need to be echoed into the file unchanged/undereferenced
@@ -567,27 +632,30 @@ umask 0077
 
 # Sleep for a short random interval so that multiple backups do not take place all at once
 SLEEPY=\`/usr/bin/shuf -i 1-240 -n 1\`
-/bin/sleep \$SLEEPY
+/bin/sleep \${SLEEPY}
 
 # Enable Moodle maintenance mode
-/usr/bin/php "$STACK_WEB_ROOT"/admin/cli/maintenance.php --enablelater=5
+/usr/bin/php "${STACK_WEB_ROOT}/admin/cli/maintenance.php" --enablelater=5
+# Sleep until Moodle goes into maintenance mode
+/bin/sleep 330
 
 
 # Make a dump of the Stack DB
 /usr/bin/mysqldump --databases "$STACK_SERVICE"  | \
-    /bin/gzip  > "$BKP_DIR_DB"/"$STACK_HOST"-"\$TODAY"-"$STACK_SERVICE".sql.gz
+    /bin/gzip  > "${BKP_DIR_DB}/${STACK_HOST}-\${TODAY}-${STACK_SERVICE}".sql.gz
+
 
 # Create a tarball of the Stack Moodle data
 # Go to the Stack Moodle data folder
-cd "$MOODLE_DATA_DIR"
+cd "${MOODLE_DATA_DIR}"
 # Go up one level, to immediately above the STACK_SERVICE folder
 cd ..
 # Create a tarball of the STACK_SERVICE Moodle data folder
-/bin/tar zcf "$BKP_DIR_MDATA"/"$STACK_HOST"-mdata-"\$TODAY"-"$STACK_SERVICE".tgz  "$STACK_SERVICE"
+/bin/tar zcf "${BKP_DIR_MDATA}/${STACK_HOST}-mdata-\${TODAY}-${STACK_SERVICE}.tgz"  "${STACK_SERVICE}"
 
 
 # Disable Moodle maintenance mode
-/usr/bin/php "$STACK_WEB_ROOT"/admin/cli/maintenance.php --disable
+/usr/bin/php "${STACK_WEB_ROOT}/admin/cli/maintenance.php" --disable
 
 EOT
 
