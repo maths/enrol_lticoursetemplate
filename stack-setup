@@ -32,7 +32,8 @@
 # Changelog (newest first)
 ######################################################################
 #
-VERSION="035"
+VERSION="036"
+# 036. 2017-03-15 dmarsh        Now installing STACK v.3.5.6 on MOODLE_30_STABLE, w/ CodeRunner 3.1.3
 # 035. 2017-03-09 dmarsh        Updated documentation links (no code changes)
 # 034. 2016-12-05 dmarsh        Now add custom PHP config to a separate file
 # 033. 2016-09-12 dmarsh        Added accidentally omitted delay pause in backup cronjob
@@ -118,7 +119,7 @@ done
 # Script needs root privileges to run in install mode
 ############################################################
 if [ `id -u` -ne 0 ]; then
-    echo "$0: must be run with root privileges, exiting.. " 1>&2
+    echo "$0: must be run with root privileges, exiting.. (Use -h for help.)" 1>&2
     exit 1
 fi
 
@@ -142,7 +143,7 @@ STACK_DOMAIN=`/bin/hostname -d`
 
 # STACK_SERVICE is also used for the DB name, and for the web/data folder names
 if [ "$STACK_SERVICE" = "" ]; then
-    echo "Stack service name not defined (-s servicename is required), exiting. Use -h for help." 1>&2
+    echo "Stack service name not defined (-s servicename is required), exiting. (Use -h for help.)" 1>&2
     exit 1
 else
     echo ">> The name of this Stack service is: $STACK_SERVICE"
@@ -188,20 +189,14 @@ APACHE_CONF_SSL_DEFAULT=default-ssl.conf
 APACHE_CONF_SSL_NAME="${STACK_HOST}-ssl"
 
 
-# The userid can be ignored for now
-# We use the UUN homedir for off-server backups, however (not in this script)
-#STACK_USER=mthdat54
-#STACK_UID=1548678
-#STACK_HOME=/home/$STACKUSER
-
 
 # Moodle version to install
 #
-# Specific version releases do not change after release
+# Releases with *full* version numbers (x.y.z) do not change after release
 # (May be needed if later 'fixes' tickle certain bugs)
 # MOODLE_VERSION=v3.1.1
 #
-# The STABLE release is rebuilt every week and incorporates subsequent fixes
+# *The STABLE release is rebuilt every week and incorporates subsequent fixes*
 #MOODLE_VERSION=MOODLE_31_STABLE
 MOODLE_VERSION=MOODLE_30_STABLE
 
@@ -217,12 +212,17 @@ MOODLE_ADMIN_EMAIL="moodle@maths.ed.ac.uk"
 
 MOODLE_DATA_DIR=/var/data/${MOODLE_DB_USER}/${STACK_SERVICE}
 
-# LTI Provider URI/version
-# Updated from moodle30 to moodle31
-MOODLE_PLUGIN_LTI="https://moodle.org/plugins/download.php/10423/local_ltiprovider_moodle31_2016020100.zip"
 
 # Stack package version
-STACK_VERSION=v3.5.5
+#STACK_VERSION=v3.5.5
+STACK_VERSION=v3.5.6
+
+
+# LTI Provider URI/version
+# Updated from moodle30 to moodle31
+MPLUGIN_LTI="https://moodle.org/plugins/download.php/10423/local_ltiprovider_moodle31_2016020100.zip"
+
+
 
 
 #DB_ROOT_PASSWD (entered later)
@@ -244,9 +244,63 @@ echo ">> DB backup folder:     ${BKP_DIR_DB}"
 echo ">> Moodle-data backup folder: ${BKP_DIR_MDATA}"
 
 echo ">> Moodle version:       ${MOODLE_VERSION}"
-echo ">> LTI Provider version: ${MOODLE_PLUGIN_LTI}"
+echo ">> LTI Provider version: ${MPLUGIN_LTI}"
+echo ">> CodeRunner QType version: ${MPLUGIN_CR_QT}"
+echo ">> CodeRunner QBehaviour version: ${MPLUGIN_CR_QB}"
 echo ">> Stack version:        ${STACK_VERSION}"
 echo
+
+
+
+
+######################################################################
+# Functions
+######################################################################
+coderunner_install()
+{
+    # CodeRunner QType package name
+    CR_QT_NAME=moodle-qtype_coderunner
+    # CodeRunner QType version (NB: not including 'v')
+    CR_QT_VERSION=3.1.3
+    # CodeRunner QT download link (NB: the filename is prefixed with 'v')
+    MPLUGIN_CR_QT="https://github.com/trampgeek/${CR_QT_NAME}/archive/v${CR_QT_VERSION}.zip"
+    # CodeRunner QT local filename when downloaded
+    CR_QT_LOCALFILE=/tmp/coderunner_qt.zip
+
+
+    # CodeRunner QBehaviour package name
+    CR_QB_NAME=moodle-qbehaviour_adaptive_adapted_for_coderunner
+    # CodeRunner QBehaviour version (NB: not including 'v')
+    CR_QB_VERSION=1.3.2
+    # CodeRunner QB download link (NB: the filename is prefixed with 'v')
+    MPLUGIN_CR_QB="https://github.com/trampgeek/${CR_QB_NAME}/archive/v${CR_QB_VERSION}.zip"
+    # CodeRunner QB local filename when downloaded
+    CR_QB_LOCALFILE=/tmp/coderunner_qb.zip
+
+
+    echo ">> About to install CodeRunner QType plugin.. "
+    echo ">> Pausing.."; /bin/sleep ${DELAY};  echo "**** Press enter to continue.."; read CONTINUE
+    echo ">> Installing CodeRunner QType plugin.. "
+    /usr/bin/wget "${MPLUGIN_CR_QT}"  -O "${CR_QT_LOCALFILE}"
+    /usr/bin/unzip "${CR_QT_LOCALFILE}"  -d "${STACK_WEB_ROOT}/question/type/"
+    # Rename the unpacked folder as required
+    /bin/mv "${STACK_WEB_ROOT}/question/type/${CR_QT_NAME}-${CR_QT_VERSION}" \
+        "${STACK_WEB_ROOT}/question/type/coderunner"
+
+    /bin/rm "${CR_QT_LOCALFILE}"
+
+
+    echo ">> About to install CodeRunner QBehaviour plugin.. "
+    echo ">> Pausing.."; /bin/sleep ${DELAY};  echo "**** Press enter to continue.."; read CONTINUE
+    echo ">> Installing CodeRunner QBehaviour plugin.. "
+    /usr/bin/wget "${MPLUGIN_CR_QB}"  -O "${CR_QB_LOCALFILE}"
+    /usr/bin/unzip "${CR_QB_LOCALFILE}"  -d "${STACK_WEB_ROOT}/question/behaviour/"
+    # Rename the unpacked folder as required
+    /bin/mv "$STACK_WEB_ROOT/question/behaviour/${CR_QB_NAME}-${CR_QB_VERSION}" \
+        "${STACK_WEB_ROOT}/question/behaviour/adaptive_adapted_for_coderunner"
+
+    /bin/rm "${CR_QB_LOCALFILE}"
+}
 
 
 
@@ -474,7 +528,9 @@ EOT
 
         echo "**** Now edit the site SSL config file"
         echo "**** ${APACHE_DIR_SITECONFS}/${APACHE_CONF_SSL_NAME}.conf"
-        echo "**** and comment out the fake cert lines and insert: "
+        echo "**** (If the website hostname is not the same as the actual server,"
+        echo "**** edit the hostname in the VirtualHost line.)"
+        echo "**** Comment out the default fake cert lines and insert: "
 
         echo "SSLCertificateFile        ${SSL_DIR_CERTS}/${SSL_CERT}"
         echo "SSLCertificateKeyFile     ${SSL_DIR_KEYS}/${SSL_KEY}"
@@ -533,21 +589,27 @@ EOT
     echo $SU_CMD | /bin/su $APACHE_USER -s /bin/sh
 
 
-    echo ">> Moodle should now be installed (pausing so that you can check for errors)."
-    echo ">> About to install LTI Provider plugin.. "
-    echo ">> Pausing.."; /bin/sleep $DELAY
-    echo "**** Press enter to continue.."; read CONTINUE
-
     #-----------------------------------------------------------
     # The basic Moodle/Stack system should now be installed.
     # Now any further config tweaks
     #-----------------------------------------------------------
 
+    echo ">> Moodle should now be installed (pausing so that you can check for errors)."
+
     # Install LTI provider plugin
+    echo ">> About to install LTI Provider plugin.. "
+    echo ">> Pausing.."; /bin/sleep ${DELAY};  echo "**** Press enter to continue.."; read CONTINUE
+
     echo ">> Installing LTI Provider plugin.. "
-    /usr/bin/wget ${MOODLE_PLUGIN_LTI}  -O /tmp/ltiprovider.zip
+    /usr/bin/wget ${MPLUGIN_LTI}  -O /tmp/ltiprovider.zip
     /usr/bin/unzip /tmp/ltiprovider.zip  -d $STACK_WEB_ROOT/local/
     /bin/rm /tmp/ltiprovider.zip
+
+
+    # Install CR QT plugin
+    coderunner_install
+
+
 
 
     #-----------------------------------------------------------
