@@ -29,6 +29,7 @@ require_once($CFG->dirroot . '/enrol/lti/ims-blti/blti.php');
 $toolid = required_param('id', PARAM_INT);
 
 // Get the tool.
+// $tool = \enrol_lti\helper::get_lti_tool($toolid);
 $tool = \enrol_lti\helper::get_lti_tool($toolid);
 
 // Create the BLTI request.

@@ -26,6 +26,8 @@ namespace enrol_lti;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/course/externallib.php');
+
 /**
  * LTI enrolment plugin helper class.
  *
@@ -294,6 +296,105 @@ class helper {
                  WHERE elt.id = :tid";
 
         return $DB->get_record_sql($sql, array('tid' => $toolid), MUST_EXIST);
+    }
+
+    /**
+     * Returns the LTI tool and creates course.
+     *
+     * @param int $toolid
+     * @return \stdClass the tool
+     */
+    public static function get_lti_new_tool($toolid, $shortname = NULL, $fullname = NULL) {
+        global $DB;
+       
+        //$duplicate = \core_course_external::duplicate_course($tool->courseid, 'Course duplicate',
+        //            'courseduplicate', 1, true); //this works but because user is not logged in it can not run - user must be logged in
+        
+        //$createdcourses = \core_course_external::create_courses(array(array('fullname' => 'new lti course', 'shortname'=>'newlticourse', 'categoryid'=>1)));
+        //$createdcourses = external_api::clean_returnvalue(\core_course_external::create_courses_returns(), $createdcourses);
+        
+        //check if course exists
+        $course = $DB->get_record('course', array('shortname' => $shortname), '*'); //TO DO: get that from tool consume
+        $courseid = null;
+        if ( !$course ) {
+            
+            //insert course
+            $table = 'course';
+            $record = new \stdClass();
+            $record->fullname = isset($fullname) ? $fullname : $shortname;
+            $record->shortname = $shortname;
+            $record->category = 1;
+            $record->summary = '<p>a template course</p>';
+            $record->format = 'weeks';
+            $record->timecreated = time();
+
+            $returnid = true;
+
+            $courseid = $DB->insert_record($table, $record, $returnid);
+
+            // Trigger a course created event
+            $event = \core\event\course_created::create(array(
+                'objectid' => $courseid,
+                'context' => \context_course::instance($courseid),
+                'other' => array('shortname' => 'newlticourse',
+                    'fullname' => 'new lti course')
+            ));
+            $event->trigger();
+
+            unset($record); //reuse
+              
+
+            //get new context
+            $context = $DB->get_record('context', array('contextlevel' => 50, 'instanceid'=>$courseid), '*');
+
+            // enable lti enrol
+            $record['enrol'] = 'lti';
+            $record['status'] = 0;
+            $record['courseid'] = $courseid;
+            $record['contextid'] = $context->id;
+            $record['name'] = 'newlticourse';
+            $record['gradesync'] = 1;
+            $record['gradesync'] = 1;
+            $record['timecreated'] = time();
+            $record['timemodified'] = time();
+            $record['roleinstructor'] = 3;
+            $record['rolelearner'] = 5;
+            $record['secret'] = random_string(32);
+            // $record['secret'] = 'COD1DXOdOKVXdcz8RpGquJTbB7xJHEpV';
+            $record['membersync'] = 1;
+            $record['membersyncmode'] = 1;
+
+            $course = $DB->get_record('course', array('id' => $courseid), '*');
+            $plugin = enrol_get_plugin('lti');
+            $fields = (array) $record;
+            $toolinstance = $plugin->add_instance($course, $fields);
+            
+            //switch to the new tool
+            $tool = $DB->get_record('enrol_lti_tools', array('enrolid' => $toolinstance), '*');
+            $toolid = $tool->id;
+            
+        }
+        else{
+            //switch the tool to the existing course
+            $courseid = $course->id;
+            $context = $DB->get_record('context', array('contextlevel' => 50, 'instanceid'=>$courseid), '*');
+            $tool = $DB->get_record('enrol_lti_tools', array('contextid' => $context->id), '*');
+            $toolid = $tool->id;
+        }
+
+        // get the tool
+        $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
+                  FROM {enrol_lti_tools} elt
+                  JOIN {enrol} e
+                    ON elt.enrolid = e.id
+                 WHERE elt.id = :tid";
+        $tool = $DB->get_record_sql($sql, array('tid' => $toolid), MUST_EXIST);
+        
+        //$tool->contextid = $context->id; //force this
+        //$tool->courseid = $courseid; //force this
+        
+        return $tool; //new tool
+        //**********************************
     }
 
     /**
