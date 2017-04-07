@@ -29,13 +29,19 @@ require_once($CFG->dirroot . '/enrol/lti/ims-blti/blti.php');
 $toolid = required_param('id', PARAM_INT);
 
 // Get the tool.
-$tool = \enrol_lti\helper::get_lti_tool($toolid);
+$oldtool = \enrol_lti\helper::get_lti_tool($toolid);
+
 
 // Create the BLTI request.
-$ltirequest = new BLTI($tool->secret, false, false);
+// $ltirequest = new BLTI($tool->secret, false, false);
+$ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
+    
+    // get the new tool
+	$tool = \enrol_lti\helper::get_lti_new_tool($toolid, $ltirequest->info['context_label'], $ltirequest->info['context_title']);
+
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {
         print_error('pluginnotenabled', 'auth', '', get_string('pluginname', 'auth_lti'));
