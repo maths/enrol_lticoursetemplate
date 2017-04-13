@@ -325,21 +325,19 @@ class helper {
 
         //$duplicate = \core_course_external::duplicate_course($tool->courseid, 'Course duplicate',
         //            'courseduplicate', 1, true); //this works but because user is not logged in it can not run - user must be logged in
-        
-        // check if course exists
+
+        // Check if the course exists.
         $course = $DB->get_record('course', array('shortname' => $shortname), '*');
-        
+
         if ( !$course ) {
-            
             $shortname = isset($shortname) ? $shortname : 'blank_course_'.random_string(10); 
-            // this will be a problem if no shortname provided by the tool consumer 
-            // because everytime user click on the moodle link inthe tool consumer a new course will be created
-            // what do we do in such case? deny access?
+            // This will be a problem if no shortname is provided by the tool consumer
+            // because every time a user clicks on the moodle link in the tool consumer a new course will be created.
+            // What do we do in such case? deny access?
             $fullname = isset($fullname) ? $fullname : $shortname;
 
-            // create course
-            // should we allow students to create courses?
-            
+            // Create course.
+            // Should we allow students to create courses?
             $plugin = enrol_get_plugin('lticoursetemplate');
 
             //
@@ -368,10 +366,10 @@ class helper {
 
             // unset($record); // reuse
 
-            // get new context
+            // Get new context.
             $context = \context_course::instance($course->id, MUST_EXIST);
 
-            // enable lticoursetemplate enrol - this is necessary!
+            // Enable lticoursetemplate enrol - this is necessary!
             $record['enrol'] = 'lticoursetemplate';
             $record['status'] = 0;
             $record['courseid'] = $course->id;
@@ -387,17 +385,16 @@ class helper {
             $record['membersync'] = 1;
             $record['membersyncmode'] = 1;
 
-            
             $toolinstance = $plugin->add_instance($course, $record);
-            
-            // switch to the new tool
+
+            // Switch to the new tool.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('enrolid' => $toolinstance), '*');
             // $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*');
-        }
-        else{
-            // switch the tool to the existing course
+        } else {
+            // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
-            $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE); // user can add more lticoursetemplate connections later
+            // User can add more lticoursetemplate connections later.
+            $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }
 
         // get the new tool
@@ -409,8 +406,8 @@ class helper {
         // $tool = $DB->get_record_sql($sql, array('tid' => $tool->id), MUST_EXIST);
 
         $tool = self::get_lti_tool($tool->id);
-        
-        return $tool; // new tool
+
+        return $tool;
     }
 
     /**
