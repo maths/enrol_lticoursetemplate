@@ -302,19 +302,23 @@ class helper {
      * @param int $toolid - oldtool - the template course tool
      * @return \stdClass the tool
      */
-    public static function get_lti_new_tool($toolid, $shortname = NULL, $fullname = NULL) {
+    public static function get_lti_new_tool($toolid, $consumerkey = NULL, $shortname = NULL, $fullname = NULL) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/course/lib.php");
 
+        if ( !isset($consumerkey) ) {
+            throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
+        }
+        
         // get the old tool
         $oldtool = self::get_lti_tool($toolid);
 
         // check if course exists
-        $course = $DB->get_record('course', array('shortname' => $shortname), '*');
+        $course = $DB->get_record('course', array('shortname' => $consumerkey.'_'.$shortname), '*');
         
         if ( !$course ) {
             
-            $shortname = isset($shortname) ? $shortname : 'blank_course_'.random_string(10); 
+            $shortname = isset($shortname) ? $consumerkey.'_'.$shortname : $consumerkey.'_'.'blank_course_'.random_string(10); 
             // this will be a problem if no shortname provided by the tool consumer 
             // because everytime user click on the moodle link in the tool consumer a new course will be created
             // what do we do in such case? deny access?

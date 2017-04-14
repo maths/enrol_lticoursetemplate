@@ -69,3 +69,4 @@ $string['tasksyncmembers'] = 'Publish as LTI Course Template tool users sync';
 $string['toolsprovided'] = 'Published tools';
 $string['tooltobeprovided'] = 'Tool to be published';
 $string['userdefaultvalues'] = 'User default values';
+$string['invalidconsumerkey'] = 'Consumer key has not been set';

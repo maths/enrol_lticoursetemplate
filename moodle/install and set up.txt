@@ -13,10 +13,7 @@ Set up Tool Provider (Moodle):
 Set up Tool Consumer:
 1. Add external tool to a course
 2. Insert launch URL and secret from the Tool Provider
-3. Type unique string as Consumer key, any string that will be the same for every LTI connections used in the tool consumer.
-4. Custom parameters: 
-  4.a. context_label - your course short name (one word), i.e.: context_label=mycourse
-  4.b. context_title - your course full name, i.e.: context_title=my course
+3. Type unique string as Consumer key, any string that will be the same for every LTI connections between tool consumer and provider. THIS MUST BE UNIQUE FOR YOUR TOOL CONSUMER WITHIN TOOL PROVIDER!
 
 DONE
 
