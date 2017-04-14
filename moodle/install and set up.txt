@@ -10,11 +10,37 @@ Set up Tool Provider (Moodle):
 3. Create a template course (make hidden)
 4. Set up Published as LTI Course Template tools connection (course admin->Published as LTI Course Template tools)
 
-Set up Tool Consumer:
+Set up Tool Consumer (general):
 1. Add external tool to a course
 2. Insert launch URL and secret from the Tool Provider
-3. Type unique string as Consumer key, any string that will be the same for every LTI connections between tool consumer and provider. THIS MUST BE UNIQUE FOR YOUR TOOL CONSUMER WITHIN TOOL PROVIDER!
+3. Type unique string as Consumer key, any string that will be the same for every LTI connections between tool consumer and provider. THIS MUST BE UNIQUE FOR YOUR TOOL CONSUMER WITHIN TOOL PROVIDER! And should not be changed after the link has been used 
 
+
+DONE
+
+Set up Blackboard Learn as Tool Consumer:
+1. Register new Basic LTI tool (System Admin->Basic LTI tools(Tools and Utilities) )
+2. Registration Settings
+   2.a. Provide name
+   2.b. Set Launch URL from Tool Provider
+   2.c. Set Consumer key - IMPORTANT, MUST BE SET and should not be changed after the link has been used 
+   2.d. Set Shared secret form Tool Provider
+   2.e. Leave anything else unchanged and click Submit 
+3. Data Settings
+   CONTEXT DATA
+   3.a. Tick Context ID box
+   3.b. Select “Database key” as Value to use for context ID
+   3.c. Tick SourcedId box
+   PERSONAL DATA
+   3.d. User Id - Required by tool
+   3.e. Value to use for user ID - Student ID
+   3.f. SourcedId tick box
+   3.g. User name - Required by tool
+   3.h. Email - Required by tool
+   3.i. User Roles - tick box
+   3.j. Leave anything else unchanged and click Submit
+   3.k. CONNECT TO TOOL OPTIONS - set up to whatever preferred
+   
 DONE
 
 
