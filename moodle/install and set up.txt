@@ -40,6 +40,7 @@ Set up Blackboard Learn as Tool Consumer:
    3.i. User Roles - tick box
    3.j. Leave anything else unchanged and click Submit
    3.k. CONNECT TO TOOL OPTIONS - set up to whatever preferred
+4. Add Basic LTI Tool just created to a course  
    
 DONE
 
