@@ -306,8 +306,14 @@ class helper {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/course/lib.php");
 
+        // Consumer key is required
         if ( !isset($consumerkey) ) {
             throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
+        }
+
+        // Shortname is required
+        if ( !isset($shortname) ) {
+            throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
         
         // get the old tool

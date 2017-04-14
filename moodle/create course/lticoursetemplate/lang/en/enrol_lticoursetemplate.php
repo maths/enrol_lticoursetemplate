@@ -70,3 +70,4 @@ $string['toolsprovided'] = 'Published tools';
 $string['tooltobeprovided'] = 'Tool to be published';
 $string['userdefaultvalues'] = 'User default values';
 $string['invalidconsumerkey'] = 'Consumer key has not been set';
+$string['invalidshortname'] = 'Course shortname has not been set';
