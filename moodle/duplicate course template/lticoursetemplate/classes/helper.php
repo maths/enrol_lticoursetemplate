@@ -327,6 +327,10 @@ class helper {
             throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
 
+        // Construct "unique" shortane
+        $shortname = $consumerkey.'_'.$shortname;  
+        $fullname = isset($fullname) ? $fullname : $shortname;
+
         // Get the old tool
         $oldtool = self::get_lti_tool($toolid);
 
@@ -334,10 +338,6 @@ class helper {
         $course = $DB->get_record('course', array('shortname' => $shortname), '*');
 
         if ( !$course ) {
-            $shortname = $consumerkey.'_'.$shortname;  
-            $fullname = isset($fullname) ? $fullname : $shortname;
-
-            // Create course.
             // Should we allow students to create courses?
             $plugin = enrol_get_plugin('lticoursetemplate');
 
