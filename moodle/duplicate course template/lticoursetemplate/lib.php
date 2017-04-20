@@ -534,11 +534,8 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
         }
 
         // Backup the course.
-
-        // $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
-        // backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $USER->id);
         $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
-        backup::INTERACTIVE_NO, backup::MODE_SAMESITE, 2); //HACK!
+        backup::INTERACTIVE_NO, backup::MODE_SAMESITE, get_config('enrol_lticoursetemplate', 'manager'));
 
         foreach ($backupsettings as $name => $value) {
             $bc->get_plan()->get_setting($name)->set_value($value);
@@ -563,10 +560,8 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
         // Create new course.
         $newcourseid = restore_dbops::create_new_course($params['fullname'], $params['shortname'], $params['categoryid']);
 
-        // $rc = new restore_controller($backupid, $newcourseid,
-        //         backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $USER->id, backup::TARGET_NEW_COURSE);
         $rc = new restore_controller($backupid, $newcourseid,
-                backup::INTERACTIVE_NO, backup::MODE_SAMESITE, 2, backup::TARGET_NEW_COURSE); //HACK!
+                backup::INTERACTIVE_NO, backup::MODE_SAMESITE, get_config('enrol_lticoursetemplate', 'manager'), backup::TARGET_NEW_COURSE);
 
         foreach ($backupsettings as $name => $value) {
             $setting = $rc->get_plan()->get_setting($name);

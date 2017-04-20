@@ -71,4 +71,13 @@ if ($ADMIN->fulltree) {
         get_string_manager()->get_list_of_translations()));
 
     $settings->add(new admin_setting_configtext('enrol_lticoursetemplate/institution', get_string('institution'), '', ''));
+
+    $settings->add(new admin_setting_heading('enrol_lticoursetemplate_admin_default_values',
+        get_string('admindefaultvalues', 'enrol_lticoursetemplate'), ''));
+
+    $manager = $USER->id;
+    if (!empty($CFG->manager)) {
+        $manager = $CFG->manager;
+    }
+    $settings->add(new admin_setting_configtext('enrol_lticoursetemplate/manager', get_string('manager', 'enrol_lticoursetemplate'), get_string('manager_help', 'enrol_lticoursetemplate'), $manager, PARAM_INT));
 }

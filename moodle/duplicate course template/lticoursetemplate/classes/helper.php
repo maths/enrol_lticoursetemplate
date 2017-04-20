@@ -313,58 +313,40 @@ class helper {
      * @param int $toolid - oldtool - the template course tool
      * @return \stdClass the tool
      */
-    public static function get_lti_new_tool($toolid, $shortname = NULL, $fullname = NULL) {
+    public static function get_lti_new_tool($toolid, $consumerkey = NULL, $shortname = NULL, $fullname = NULL) {
         global $DB, $CFG;
-        //require_once($CFG->dirroot . "/course/lib.php");
         require_once($CFG->dirroot . "/lib/accesslib.php");
-        //require_once($CFG->dirroot . '/enrol/externallib.php');
-        //require_once($CFG->dirroot . '/enrol/lticoursetemplate/lib.php');
+        
+        // Consumer key is required
+        if ( !isset($consumerkey) ) {
+            throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
+        }
 
-        // get the old tool
+        // Shortname is required
+        if ( !isset($shortname) ) {
+            throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
+        }
+
+        // Construct "unique" shortane
+        $shortname = $consumerkey.'_'.$shortname;  
+        $fullname = isset($fullname) ? $fullname : $shortname;
+
+        // Get the old tool
         $oldtool = self::get_lti_tool($toolid);
-
-        //$duplicate = \core_course_external::duplicate_course($tool->courseid, 'Course duplicate',
-        //            'courseduplicate', 1, true); //this works but because user is not logged in it can not run - user must be logged in
 
         // Check if the course exists.
         $course = $DB->get_record('course', array('shortname' => $shortname), '*');
 
         if ( !$course ) {
-            $shortname = isset($shortname) ? $shortname : 'blank_course_'.random_string(10); 
-            // This will be a problem if no shortname is provided by the tool consumer
-            // because every time a user clicks on the moodle link in the tool consumer a new course will be created.
-            // What do we do in such case? deny access?
-            $fullname = isset($fullname) ? $fullname : $shortname;
-
-            // Create course.
             // Should we allow students to create courses?
             $plugin = enrol_get_plugin('lticoursetemplate');
 
-            //
-            //
-            //
-                // get the template course category
-                $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST); // TO DO: get categoryid from plugin settings
-                // duplicate the course from the template
-                // $duplicate = \enrol_lti_plugin::duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
-                $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid); // TO DO: get userid from plugin settings
-                // switch to the new course 
-                $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
-            //
-            //
-            //
-            //
-            
-
-            // $record = new \stdClass();
-            // $record->fullname = $fullname;
-            // $record->shortname = $shortname;
-            // $record->category = 1; // TO DO: do we hardcode this, set by tool consumer or...?
-            // $record->timecreated = time();
-
-            // $course = create_course($record);
-
-            // unset($record); // reuse
+            // Get the template course category
+            $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST);
+            // Duplicate the course from the template
+            $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
+            // Switch to the new course 
+            $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
 
             // Get new context.
             $context = \context_course::instance($course->id, MUST_EXIST);
@@ -393,21 +375,11 @@ class helper {
         } else {
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
-            // User can add more lticoursetemplate connections later.
+            // User can add more lticoursetemplate connections later but SHOULD NOT.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }
 
-        // get the new tool
-        // $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
-        //           FROM {enrol_lti_ct_tools} elt
-        //           JOIN {enrol} e
-        //             ON elt.enrolid = e.id
-        //          WHERE elt.id = :tid";
-        // $tool = $DB->get_record_sql($sql, array('tid' => $tool->id), MUST_EXIST);
-
-        $tool = self::get_lti_tool($tool->id);
-
-        return $tool;
+        return self::get_lti_tool($tool->id);;
     }
 
     /**
