@@ -187,7 +187,8 @@ class enrol_lticoursetemplate_helper_testcase extends advanced_testcase {
         $this->assertEquals(2, $count);
 
         // Count all the tools in course 2 that are disabled.
-        $count = \enrol_lticoursetemplate\helper::count_lti_tools(array('courseid' => $course2->id, 'status' => ENROL_INSTANCE_DISABLED));
+        $count = \enrol_lticoursetemplate\helper::count_lti_tools(array('courseid' => $course2->id,
+            'status' => ENROL_INSTANCE_DISABLED));
         $this->assertEquals(1, $count);
 
         // Count all the tools that are enabled.
@@ -231,7 +232,8 @@ class enrol_lticoursetemplate_helper_testcase extends advanced_testcase {
         $this->assertTrue(isset($tools[$tool2->id]));
 
         // Get all the tools in course 2 that are disabled.
-        $tools = \enrol_lticoursetemplate\helper::get_lti_tools(array('courseid' => $course2->id, 'status' => ENROL_INSTANCE_DISABLED));
+        $tools = \enrol_lticoursetemplate\helper::get_lti_tools(array('courseid' => $course2->id,
+            'status' => ENROL_INSTANCE_DISABLED));
 
         // Check that we got all the tools in course 2 that are disabled.
         $this->assertEquals(1, count($tools));

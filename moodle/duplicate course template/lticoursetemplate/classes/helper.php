@@ -296,42 +296,31 @@ class helper {
         return $DB->get_record_sql($sql, array('tid' => $toolid), MUST_EXIST);
     }
 
-    //  public static function duplicate_course($oldtool, $tool) {
-    //     global $DB, $CFG;
-    //     require_once($CFG->dirroot . '/enrol/lticoursetemplate/lib.php');
-        
-    //     //get the new course
-    //     $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
-
-    //     $duplicate = \enrol_lti_plugin::duplicate_course($oldtool->courseid, $course->fullname, $course->shortname , $course->category, true, array(), $course->id); 
-    //     //$course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
-    // }
-
     /**
      * Returns the LTI new tool and creates course.
      *
      * @param int $toolid - oldtool - the template course tool
      * @return \stdClass the tool
      */
-    public static function get_lti_new_tool($toolid, $consumerkey = NULL, $shortname = NULL, $fullname = NULL) {
+    public static function get_lti_new_tool($toolid, $consumerkey = null, $shortname = null, $fullname = null) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/lib/accesslib.php");
-        
-        // Consumer key is required
+
+        // Consumer key is required.
         if ( !isset($consumerkey) ) {
             throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
         }
 
-        // Shortname is required
+        // Shortname is required.
         if ( !isset($shortname) ) {
             throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
 
-        // Construct "unique" shortane
-        $shortname = $consumerkey.'_'.$shortname;  
+        // Construct "unique" shortane.
+        $shortname = $consumerkey.'_'.$shortname;
         $fullname = isset($fullname) ? $fullname : $shortname;
 
-        // Get the old tool
+        // Get the old tool.
         $oldtool = self::get_lti_tool($toolid);
 
         // Check if the course exists.
@@ -341,11 +330,11 @@ class helper {
             // Should we allow students to create courses?
             $plugin = enrol_get_plugin('lticoursetemplate');
 
-            // Get the template course category
+            // Get the template course category.
             $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST);
-            // Duplicate the course from the template
+            // Duplicate the course from the template.
             $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
-            // Switch to the new course 
+            // Switch to the new course.
             $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
 
             // Get new context.
@@ -371,7 +360,6 @@ class helper {
 
             // Switch to the new tool.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('enrolid' => $toolinstance), '*');
-            // $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*');
         } else {
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);

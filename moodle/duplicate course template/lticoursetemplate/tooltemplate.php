@@ -37,9 +37,10 @@ $ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
-    
-    // get the new tool
-	$tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'], $ltirequest->info['context_id'], $ltirequest->info['context_title']);
+
+    // Get the new tool.
+    $tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'],
+            $ltirequest->info['context_id'], $ltirequest->info['context_title']);
 
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {
@@ -64,7 +65,8 @@ if ($ltirequest->valid) {
 
     // Set the user data.
     $user = new stdClass();
-    $user->username = \enrol_lticoursetemplate\helper::create_username($ltirequest->info['oauth_consumer_key'], $ltirequest->info['user_id']);
+    $user->username = \enrol_lticoursetemplate\helper::create_username($ltirequest->info['oauth_consumer_key'],
+            $ltirequest->info['user_id']);
     if (!empty($ltirequest->info['lis_person_name_given'])) {
         $user->firstname = $ltirequest->info['lis_person_name_given'];
     } else {
