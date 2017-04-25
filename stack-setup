@@ -610,7 +610,13 @@ EOT
     coderunner_install
 
 
-
+    #-----------------------------------------------------------
+    # Set up MathJax locally
+    # See http://docs.mathjax.org/en/latest/installation.html
+    #-----------------------------------------------------------
+    echo ">> Set up MathJax locally."
+    
+    /usr/bin/git clone https://github.com/mathjax/MathJax.git $WEB_ROOT_DEFAULT/MathJax
 
     #-----------------------------------------------------------
     # Prevent writing of web files after Moodle installation
