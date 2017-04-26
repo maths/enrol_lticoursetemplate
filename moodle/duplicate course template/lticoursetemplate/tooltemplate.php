@@ -37,9 +37,9 @@ $ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
-    
+
     // get the new tool
-	$tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'], $ltirequest->info['context_id'], $ltirequest->info['context_title']);
+	$tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'], $ltirequest->info['context_id'], $ltirequest->info['context_title'], $ltirequest->isInstructor());
 
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {

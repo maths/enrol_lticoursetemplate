@@ -313,9 +313,10 @@ class helper {
      * @param int $toolid - oldtool - the template course tool
      * @return \stdClass the tool
      */
-    public static function get_lti_new_tool($toolid, $consumerkey = NULL, $shortname = NULL, $fullname = NULL) {
+    public static function get_lti_new_tool($toolid, $consumerkey = NULL, $shortname = NULL, $fullname = NULL, $isinstructor = FALSE) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/lib/accesslib.php");
+        require_once($CFG->dirroot . "/lib/setuplib.php");
         
         // Consumer key is required
         if ( !isset($consumerkey) ) {
@@ -339,6 +340,10 @@ class helper {
 
         if ( !$course ) {
             // Should we allow students to create courses?
+            if ( !$isinstructor ){
+                redirect('/enrol/lticoursetemplate/notready.php');
+            }
+            
             $plugin = enrol_get_plugin('lticoursetemplate');
 
             // Get the template course category
@@ -363,7 +368,7 @@ class helper {
             $record['timemodified'] = time();
             $record['roleinstructor'] = 3;
             $record['rolelearner'] = 5;
-            $record['secret'] = random_string(32);
+            $record['secret'] = $oldtool->secret;
             $record['membersync'] = 1;
             $record['membersyncmode'] = 1;
 
