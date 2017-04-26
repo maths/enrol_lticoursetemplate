@@ -24,6 +24,8 @@
 
 namespace enrol_lticoursetemplate\task;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Task for synchronising grades for the enrolment LTI.
  *

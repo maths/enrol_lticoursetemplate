@@ -262,9 +262,12 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
         $mform->addHelpButton('membersync', 'membersync', 'enrol_lticoursetemplate');
 
         $options = array();
-        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_ENROL_AND_UNENROL] = get_string('membersyncmodeenrolandunenrol', 'enrol_lticoursetemplate');
-        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_ENROL_NEW] = get_string('membersyncmodeenrolnew', 'enrol_lticoursetemplate');
-        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_UNENROL_MISSING] = get_string('membersyncmodeunenrolmissing', 'enrol_lticoursetemplate');
+        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_ENROL_AND_UNENROL] = get_string('membersyncmodeenrolandunenrol',
+                'enrol_lticoursetemplate');
+        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_ENROL_NEW] = get_string('membersyncmodeenrolnew',
+                'enrol_lticoursetemplate');
+        $options[\enrol_lticoursetemplate\helper::MEMBER_SYNC_UNENROL_MISSING] = get_string('membersyncmodeunenrolmissing',
+                'enrol_lticoursetemplate');
         $mform->addElement('select', 'membersyncmode', get_string('membersyncmode', 'enrol_lticoursetemplate'), $options);
         $mform->setDefault('membersyncmode', \enrol_lticoursetemplate\helper::MEMBER_SYNC_ENROL_AND_UNENROL);
         $mform->addHelpButton('membersyncmode', 'membersyncmode', 'enrol_lticoursetemplate');
@@ -401,7 +404,7 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
     }
 
 
-        /**
+    /**
      * Returns description of method parameters
      *
      * @return external_function_parameters
@@ -467,17 +470,15 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
 
         // Context validation.
 
-        if (! ($course = $DB->get_record('course', array('id'=>$params['courseid'])))) {
+        if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
             throw new moodle_exception('invalidcourseid', 'error');
         }
 
         // Category where duplicated course is going to be created.
         $categorycontext = context_coursecat::instance($params['categoryid']);
-        // self::validate_context($categorycontext);
 
         // Course to be duplicated.
         $coursecontext = context_course::instance($course->id);
-        //self::validate_context($coursecontext);
 
         $backupdefaults = array(
             'activities' => 1,
@@ -511,20 +512,8 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
             }
         }
 
-        // Capability checking.
-
-        // The backup controller check for this currently, this may be redundant.
-        // require_capability('moodle/course:create', $categorycontext);
-        // require_capability('moodle/restore:restorecourse', $categorycontext);
-        // require_capability('moodle/backup:backupcourse', $coursecontext);
-
-        // if (!empty($backupsettings['users'])) {
-        //     require_capability('moodle/backup:userinfo', $coursecontext);
-        //     require_capability('moodle/restore:userinfo', $categorycontext);
-        // }
-
         // Check if the shortname is used.
-        if ($foundcourses = $DB->get_records('course', array('shortname'=>$shortname))) {
+        if ($foundcourses = $DB->get_records('course', array('shortname' => $shortname))) {
             foreach ($foundcourses as $foundcourse) {
                 $foundcoursenames[] = $foundcourse->fullname;
             }
@@ -561,7 +550,8 @@ class enrol_lticoursetemplate_plugin extends enrol_plugin {
         $newcourseid = restore_dbops::create_new_course($params['fullname'], $params['shortname'], $params['categoryid']);
 
         $rc = new restore_controller($backupid, $newcourseid,
-                backup::INTERACTIVE_NO, backup::MODE_SAMESITE, get_config('enrol_lticoursetemplate', 'manager'), backup::TARGET_NEW_COURSE);
+                backup::INTERACTIVE_NO, backup::MODE_SAMESITE, get_config('enrol_lticoursetemplate', 'manager'),
+                backup::TARGET_NEW_COURSE);
 
         foreach ($backupsettings as $name => $value) {
             $setting = $rc->get_plan()->get_setting($name);

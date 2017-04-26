@@ -64,7 +64,8 @@ if ($ltirequest->valid) {
 
     // Set the user data.
     $user = new stdClass();
-    $user->username = \enrol_lticoursetemplate\helper::create_username($ltirequest->info['oauth_consumer_key'], $ltirequest->info['user_id']);
+    $user->username = \enrol_lticoursetemplate\helper::create_username($ltirequest->info['oauth_consumer_key'],
+            $ltirequest->info['user_id']);
     if (!empty($ltirequest->info['lis_person_name_given'])) {
         $user->firstname = $ltirequest->info['lis_person_name_given'];
     } else {

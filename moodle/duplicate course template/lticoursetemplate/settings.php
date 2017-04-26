@@ -26,7 +26,8 @@ defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
 
-    $settings->add(new admin_setting_heading('enrol_lticoursetemplate_settings', '', get_string('pluginname_desc', 'enrol_lticoursetemplate')));
+    $settings->add(new admin_setting_heading('enrol_lticoursetemplate_settings', '', get_string('pluginname_desc',
+            'enrol_lticoursetemplate')));
 
     if (!is_enabled_auth('lti')) {
         $notify = new \core\output\notification(get_string('authltimustbeenabled', 'enrol_lticoursetemplate'),
@@ -79,5 +80,6 @@ if ($ADMIN->fulltree) {
     if (!empty($CFG->manager)) {
         $manager = $CFG->manager;
     }
-    $settings->add(new admin_setting_configtext('enrol_lticoursetemplate/manager', get_string('manager', 'enrol_lticoursetemplate'), get_string('manager_help', 'enrol_lticoursetemplate'), $manager, PARAM_INT));
+    $settings->add(new admin_setting_configtext('enrol_lticoursetemplate/manager', get_string('manager',
+            'enrol_lticoursetemplate'), get_string('manager_help', 'enrol_lticoursetemplate'), $manager, PARAM_INT));
 }

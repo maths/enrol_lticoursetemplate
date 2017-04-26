@@ -24,6 +24,8 @@
 
 namespace enrol_lticoursetemplate\task;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Task for synchronising members using the enrolment LTI.
  *
@@ -159,7 +161,8 @@ class sync_members extends \core\task\scheduled_task {
                         foreach ($members as $member) {
                             // Set the user data.
                             $user = new \stdClass();
-                            $user->username = \enrol_lticoursetemplate\helper::create_username($ltiuser->consumerkey, $member->user_id);
+                            $user->username = \enrol_lticoursetemplate\helper::create_username($ltiuser->consumerkey,
+                                    $member->user_id);
                             $user->firstname = \core_user::clean_field($member->person_name_given, 'firstname');
                             $user->lastname = \core_user::clean_field($member->person_name_family, 'lastname');
                             $user->email = \core_user::clean_field($member->person_contact_email_primary, 'email');

@@ -34,11 +34,11 @@ defined('MOODLE_INTERNAL') || die();
 class backup_enrol_lticoursetemplate_plugin extends backup_enrol_plugin {
 
     /**
-    * Defines the other LTI enrolment structures to append.
-    *
-    * @return backup_plugin_element
-    */
-     
+     * Defines the other LTI enrolment structures to append.
+     *
+     * @return backup_plugin_element
+     */
+
     public function define_enrol_plugin_structure() {
         // Get the parent we will be adding these elements to.
         $plugin = $this->get_plugin_element();
