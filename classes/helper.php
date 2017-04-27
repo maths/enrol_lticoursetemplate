@@ -326,9 +326,9 @@ class helper {
         $oldtool = self::get_lti_tool($toolid);
 
         // Check if the course exists.
-        $course = $DB->get_record('course', array('shortname' => $shortname), '*');
+        $course_check = $DB->get_record('enrol_lti_ct_courses', array('shortname' => $shortname), '*');
 
-        if ( !$course ) {
+        if ( !$course_check ) {
             // Should we allow students to create courses?
             if ( !$isinstructor ){
                 redirect('/enrol/lticoursetemplate/notready.php');
@@ -338,10 +338,20 @@ class helper {
 
             // Get the template course category.
             $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST);
+            
             // Duplicate the course from the template.
             $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
+            
             // Switch to the new course.
             $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
+
+            // Save the course in the plugin table.
+            $dataobject = new \stdClass();
+            $dataobject->courseid = $course->id;
+            $dataobject->shortname = $course->shortname;
+            $DB->insert_record('enrol_lti_ct_courses', $dataobject, false);
+
+            unset($dataobject);
 
             // Get new context.
             $context = \context_course::instance($course->id, MUST_EXIST);
@@ -367,8 +377,12 @@ class helper {
             // Switch to the new tool.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('enrolid' => $toolinstance), '*');
         } else {
+            // Get the course.
+            $course = $DB->get_record('course', array('id' => $course_check->courseid), '*');
+
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
+            
             // User can add more lticoursetemplate connections later but SHOULD NOT.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }
