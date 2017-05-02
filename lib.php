@@ -641,3 +641,19 @@ function enrol_lticoursetemplate_extend_navigation_course($navigation, $course, 
         }
     }
 }
+
+/**
+ * Hook called before we delete a course.
+ *
+ * @param \stdClass $course The course record.
+ */
+function enrol_lticoursetemplate_pre_course_delete($course) {
+    global $DB;
+    // It is possible that the course deletion which triggered this hook
+    // was from an in progress course restore.
+    if (isset($course->deletesource) && $course->deletesource == 'restore') {
+        return;
+    }
+    // Delete course from the plugin table
+    $DB->delete_records('enrol_lti_ct_courses', array('courseid'=>$course->id));
+}
