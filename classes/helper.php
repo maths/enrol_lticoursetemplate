@@ -356,14 +356,17 @@ class helper {
             // Get new context.
             $context = \context_course::instance($course->id, MUST_EXIST);
 
-            // Enable lticoursetemplate enrol - this is necessary!
+            // Remove duplicated enrol instance that is not added to the plugin table (backup issue).
+            $DB->delete_records('enrol', array('courseid' => $course->id, 'enrol'=>'lticoursetemplate'));
+
+            // Enable lticoursetemplate enrol the right way - this is necessary!
             $record['enrol'] = 'lticoursetemplate';
             $record['status'] = 0;
             $record['courseid'] = $course->id;
             $record['contextid'] = $context->id;
             $record['name'] = 'LTI CT Connection';
             $record['gradesync'] = 1;
-            $record['gradesync'] = 1;
+            $record['gradesynccompletion'] = 0;
             $record['timecreated'] = time();
             $record['timemodified'] = time();
             $record['roleinstructor'] = 3;
