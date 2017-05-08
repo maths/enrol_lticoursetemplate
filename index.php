@@ -110,7 +110,7 @@ if (\enrol_lticoursetemplate\helper::count_lti_tools(array('courseid' => $course
     echo $OUTPUT->render($notify);
 }
 
-if ($ltiplugin->can_add_instance($course->id)) {
+if ($ltiplugin->can_add_instance($course->id) AND \enrol_lticoursetemplate\helper::count_lti_tools(array('courseid' => $courseid)) <= 0) {
     echo $OUTPUT->single_button(new moodle_url('/enrol/editinstance.php',
         array(
             'type' => 'lticoursetemplate',
@@ -118,6 +118,11 @@ if ($ltiplugin->can_add_instance($course->id)) {
             'returnurl' => new moodle_url('/enrol/lticoursetemplate/index.php', array('courseid' => $course->id)))
         ),
         get_string('add'));
+}
+else{
+    $notify = new \core\output\notification(get_string('onlyonetoolallowed', 'enrol_lticoursetemplate'),
+        \core\output\notification::NOTIFY_WARNING);
+    echo $OUTPUT->render($notify);
 }
 
 echo $OUTPUT->footer();
