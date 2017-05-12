@@ -215,7 +215,7 @@ class sync_members extends \core\task\scheduled_task {
                                 $instance = new \stdClass();
                                 $instance->id = $tool->enrolid;
                                 $instance->courseid = $tool->courseid;
-                                $instance->enrol = 'lti';
+                                $instance->enrol = 'lticoursetemplate';
                                 $ltiplugin->unenrol_user($instance, $ltiuser->id);
                             }
                         }
