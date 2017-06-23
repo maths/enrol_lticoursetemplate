@@ -372,8 +372,8 @@ class helper {
             $record['roleinstructor'] = 3;
             $record['rolelearner'] = 5;
             $record['secret'] = $oldtool->secret;
-            $record['membersync'] = 1;
-            $record['membersyncmode'] = 1;
+            $record['membersync'] = 0;
+            //$record['membersyncmode'] = 1;
 
             $toolinstance = $plugin->add_instance($course, $record);
 
