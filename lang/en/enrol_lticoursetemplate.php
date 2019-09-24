@@ -74,5 +74,5 @@ $string['invalidshortname'] = 'Course shortname has not been set';
 $string['manager'] = 'User ID';
 $string['manager_help'] = 'Set user id that will run course backup/restore. By default it is your user id value but you can create a new user with required capabilities and set its id here.';
 $string['admindefaultvalues'] = 'Manager default values';
-$string['onlyonetoolallowed'] = 'Only one tool can be creatad for a course';
+$string['onlyonetoolallowed'] = 'Only one tool can be created for a course';
 $string['useraccountsuspended'] = 'Your account has been suspended';
