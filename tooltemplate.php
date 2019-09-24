@@ -100,8 +100,7 @@ if ($ltirequest->valid) {
             // Check if account not suspended
             if ( $dbuser->suspended ) {
                 throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
-            }
-            else{
+            } else {
                 $user = $dbuser;
             }
 
