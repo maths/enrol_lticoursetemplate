@@ -31,15 +31,15 @@ $toolid = required_param('id', PARAM_INT);
 // Get the tool.
 $oldtool = \enrol_lticoursetemplate\helper::get_lti_tool($toolid);
 
-
 // Create the BLTI request.
 $ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
 
-    // get the new tool
-	$tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'], $ltirequest->info['context_id'], $ltirequest->info['context_title'], $ltirequest->isInstructor());
+    // Get the new tool.
+    $tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'],
+            $ltirequest->info['context_id'], $ltirequest->info['context_title'], $ltirequest->isInstructor());
 
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {
@@ -97,7 +97,7 @@ if ($ltirequest->valid) {
         $user = $DB->get_record('user', array('id' => $user->id));
     } else {
         if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
-            // Check if account not suspended
+            // Check if account not suspended.
             if ( $dbuser->suspended ) {
                 throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
             } else {

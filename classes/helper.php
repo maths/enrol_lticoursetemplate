@@ -303,11 +303,12 @@ class helper {
      * @return \stdClass the tool
      */
 
-    public static function get_lti_new_tool($toolid, $consumerkey = null, $shortname = null, $fullname = null, $isinstructor = false) {
+    public static function get_lti_new_tool($toolid, $consumerkey = null, $shortname = null, $fullname = null,
+            $isinstructor = false) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/lib/accesslib.php");
         require_once($CFG->dirroot . "/lib/setuplib.php");
-        
+
         // Consumer key is required.
         if ( !isset($consumerkey) ) {
             throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
@@ -326,22 +327,22 @@ class helper {
         $oldtool = self::get_lti_tool($toolid);
 
         // Check if the course exists.
-        $course_check = $DB->get_record('enrol_lti_ct_courses', array('shortname' => $shortname), '*');
+        $coursecheck = $DB->get_record('enrol_lti_ct_courses', array('shortname' => $shortname), '*');
 
-        if ( !$course_check ) {
+        if (!$coursecheck) {
             // Should we allow students to create courses?
-            if ( !$isinstructor ){
+            if (!$isinstructor) {
                 redirect('/enrol/lticoursetemplate/notready.php');
             }
-            
+
             $plugin = enrol_get_plugin('lticoursetemplate');
 
             // Get the template course category.
             $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST);
-            
+
             // Duplicate the course from the template.
             $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
-            
+
             // Switch to the new course.
             $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
 
@@ -357,7 +358,7 @@ class helper {
             $context = \context_course::instance($course->id, MUST_EXIST);
 
             // Remove duplicated enrol instance that is not added to the plugin table (backup issue).
-            $DB->delete_records('enrol', array('courseid' => $course->id, 'enrol'=>'lticoursetemplate'));
+            $DB->delete_records('enrol', array('courseid' => $course->id, 'enrol' => 'lticoursetemplate'));
 
             // Enable lticoursetemplate enrol the right way - this is necessary!
             $record['enrol'] = 'lticoursetemplate';
@@ -381,11 +382,11 @@ class helper {
             $tool = $DB->get_record('enrol_lti_ct_tools', array('enrolid' => $toolinstance), '*');
         } else {
             // Get the course.
-            $course = $DB->get_record('course', array('id' => $course_check->courseid), '*');
+            $course = $DB->get_record('course', array('id' => $coursecheck->courseid), '*');
 
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
-            
+
             // User can add more lticoursetemplate connections later but SHOULD NOT.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }

@@ -654,6 +654,6 @@ function enrol_lticoursetemplate_pre_course_delete($course) {
     if (isset($course->deletesource) && $course->deletesource == 'restore') {
         return;
     }
-    // Delete course from the plugin table
-    $DB->delete_records('enrol_lti_ct_courses', array('courseid'=>$course->id));
+    // Delete course from the plugin table.
+    $DB->delete_records('enrol_lti_ct_courses', array('courseid' => $course->id));
 }
