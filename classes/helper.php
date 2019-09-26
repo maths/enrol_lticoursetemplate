@@ -92,6 +92,7 @@ class helper {
             return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
         } else {
             throw new moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
+            exit();
         }
     }
 
