@@ -96,14 +96,14 @@ if ($ltirequest->valid) {
         // Get the updated user record.
         $user = $DB->get_record('user', array('id' => $user->id));
     } else {
-        if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
-            // Check if account not suspended.
-            if ( $dbuser->suspended ) {
-                throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
-            } else {
-                $user = $dbuser;
-            }
+        
+        if ( $dbuser->suspended ) {
+            throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
+            exit();
+        }
 
+        if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
+            $user = $dbuser;
         } else {
             // If email is empty remove it, so we don't update the user with an empty email.
             if (empty($user->email)) {
