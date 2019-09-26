@@ -19,4 +19,3 @@ NOTE: the plugin requires a user ID that is capable to run course backup/restore
 There are a number of options which you should consider.
 
 You can create as many course templates as you like on one Moodle server, and seed these with content.
-

@@ -33,7 +33,8 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class helper {
+class helper
+{
     /*
      * The value used when we want to enrol new members and unenrol old ones.
      */
@@ -86,7 +87,8 @@ class helper {
      * @param string $ltiuserid External tool user id
      * @return string The new username
      */
-    public static function create_username($consumerkey, $ltiuserid) {
+    public static function create_username($consumerkey, $ltiuserid)
+    {
         if (!empty($ltiuserid) && !empty($consumerkey)) {
             $userkey = $consumerkey . ':' . $ltiuserid;
             return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
@@ -103,7 +105,8 @@ class helper {
      * @param \stdClass $user
      * @return \stdClass The $user class with added default values
      */
-    public static function assign_user_tool_data($tool, $user) {
+    public static function assign_user_tool_data($tool, $user)
+    {
         global $CFG;
 
         $user->city = (!empty($tool->city)) ? $tool->city : "";
@@ -112,7 +115,7 @@ class helper {
         $user->timezone = (!empty($tool->timezone)) ? $tool->timezone : "";
         if (isset($tool->maildisplay)) {
             $user->maildisplay = $tool->maildisplay;
-        } else if (isset($CFG->defaultpreference_maildisplay)) {
+        } elseif (isset($CFG->defaultpreference_maildisplay)) {
             $user->maildisplay = $CFG->defaultpreference_maildisplay;
         } else {
             $user->maildisplay = 2;
@@ -131,7 +134,8 @@ class helper {
      * @param \stdClass $olduser The old user
      * @return bool True if both users are the same
      */
-    public static function user_match($newuser, $olduser) {
+    public static function user_match($newuser, $olduser)
+    {
         if ($newuser->firstname != $olduser->firstname) {
             return false;
         }
@@ -176,7 +180,8 @@ class helper {
      * @param string $url the url of the image
      * @return bool|string true if successful, else a string explaining why it failed
      */
-    public static function update_user_profile_image($userid, $url) {
+    public static function update_user_profile_image($userid, $url)
+    {
         global $CFG, $DB;
 
         require_once($CFG->libdir . '/filelib.php');
@@ -237,7 +242,8 @@ class helper {
      * @param int $userid The user id
      * @return bool|string returns true if successful, else an error code
      */
-    public static function enrol_user($tool, $userid) {
+    public static function enrol_user($tool, $userid)
+    {
         global $DB;
 
         // Check if the user enrolment exists.
@@ -284,7 +290,8 @@ class helper {
      * @param int $toolid
      * @return \stdClass the tool
      */
-    public static function get_lti_tool($toolid) {
+    public static function get_lti_tool($toolid)
+    {
         global $DB;
 
         $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
@@ -303,19 +310,24 @@ class helper {
      * @return \stdClass the tool
      */
 
-    public static function get_lti_new_tool($toolid, $consumerkey = null, $shortname = null, $fullname = null,
-            $isinstructor = false) {
+    public static function get_lti_new_tool(
+        $toolid,
+        $consumerkey = null,
+        $shortname = null,
+        $fullname = null,
+        $isinstructor = false
+    ) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/lib/accesslib.php");
         require_once($CFG->dirroot . "/lib/setuplib.php");
-
+        
         // Consumer key is required.
-        if ( !isset($consumerkey) ) {
+        if (!isset($consumerkey)) {
             throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
         }
 
         // Shortname is required.
-        if ( !isset($shortname) ) {
+        if (!isset($shortname)) {
             throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
 
@@ -334,15 +346,15 @@ class helper {
             if (!$isinstructor) {
                 redirect('/enrol/lticoursetemplate/notready.php');
             }
-
+            
             $plugin = enrol_get_plugin('lticoursetemplate');
 
             // Get the template course category.
             $categoryid = $DB->get_field('course', 'category', array('id' => $oldtool->courseid), MUST_EXIST);
-
+            
             // Duplicate the course from the template.
-            $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname , $categoryid);
-
+            $duplicate = $plugin->duplicate_course($oldtool->courseid, $fullname, $shortname, $categoryid);
+            
             // Switch to the new course.
             $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
 
@@ -386,12 +398,13 @@ class helper {
 
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
-
+            
             // User can add more lticoursetemplate connections later but SHOULD NOT.
             $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }
 
-        return self::get_lti_tool($tool->id);;
+        return self::get_lti_tool($tool->id);
+        ;
     }
 
     /**
@@ -402,7 +415,8 @@ class helper {
      * @param int $limitnum return a subset comprising this many records in total
      * @return array of tools
      */
-    public static function get_lti_tools($params = array(), $limitfrom = 0, $limitnum = 0) {
+    public static function get_lti_tools($params = array(), $limitfrom = 0, $limitnum = 0)
+    {
         global $DB;
 
         $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
@@ -427,7 +441,8 @@ class helper {
      * @param array $params The list of SQL params (eg. array('columnname' => value, 'columnname2' => value)).
      * @return int The number of tools
      */
-    public static function count_lti_tools($params = array()) {
+    public static function count_lti_tools($params = array())
+    {
         global $DB;
 
         $sql = "SELECT COUNT(*)
@@ -452,7 +467,8 @@ class helper {
      * @param float $grade User final grade
      * @return string
      */
-    public static function create_service_body($source, $grade) {
+    public static function create_service_body($source, $grade)
+    {
         return '<?xml version="1.0" encoding="UTF-8"?>
             <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
               <imsx_POXHeader>

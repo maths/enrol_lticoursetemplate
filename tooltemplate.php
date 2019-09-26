@@ -31,15 +31,37 @@ $toolid = required_param('id', PARAM_INT);
 // Get the tool.
 $oldtool = \enrol_lticoursetemplate\helper::get_lti_tool($toolid);
 
+
 // Create the BLTI request.
 $ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
-
     // Get the new tool.
-    $tool = \enrol_lticoursetemplate\helper::get_lti_new_tool($toolid, $ltirequest->info['oauth_consumer_key'],
-            $ltirequest->info['context_id'], $ltirequest->info['context_title'], $ltirequest->isInstructor());
+    $tool = \enrol_lticoursetemplate\helper::get_lti_new_tool(
+        $toolid,
+        $ltirequest->info['oauth_consumer_key'],
+        $ltirequest->info['context_id'],
+        $ltirequest->info['context_title'],
+        $ltirequest->isInstructor()
+    );
+
+    // Log lti request data
+    $event = \enrol_lticoursetemplate\event\lticonnection_launched::create(array(
+        'objectid' => 0,
+        'context' => context::instance_by_id($tool->contextid),
+        'other'    => array(
+            'oauth_consumer_key' => $ltirequest->info['oauth_consumer_key'],
+            'context_id'   => $ltirequest->info['context_id'],
+            'context_title' => $ltirequest->info['context_title'],
+            'user_id' => $ltirequest->info['user_id'],
+            'lis_person_name_given' => $ltirequest->info['lis_person_name_given'],
+            'lis_person_name_family' => $ltirequest->info['lis_person_name_family'],
+            'lis_email' => $ltirequest->getUserEmail(),
+        )
+    ));
+    $event->trigger();
+
 
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {
@@ -64,8 +86,23 @@ if ($ltirequest->valid) {
 
     // Set the user data.
     $user = new stdClass();
-    $user->username = \enrol_lticoursetemplate\helper::create_username($ltirequest->info['oauth_consumer_key'],
-            $ltirequest->info['user_id']);
+    $user->username = \enrol_lticoursetemplate\helper::create_username(
+        $ltirequest->info['oauth_consumer_key'],
+        $ltirequest->info['user_id']
+    );
+
+    // Log generated user name
+    $event = \enrol_lticoursetemplate\event\ltiname_created::create(array(
+        'objectid' => 0,
+        'context' => context::instance_by_id($tool->contextid),
+        'other'    => array(
+            'username' => $user->username,
+            'oauth_consumer_key' => $ltirequest->info['oauth_consumer_key'],
+            'user_id' => $ltirequest->info['user_id'],
+        )
+    ));
+    $event->trigger();
+    
     if (!empty($ltirequest->info['lis_person_name_given'])) {
         $user->firstname = $ltirequest->info['lis_person_name_given'];
     } else {
@@ -95,15 +132,37 @@ if ($ltirequest->valid) {
 
         // Get the updated user record.
         $user = $DB->get_record('user', array('id' => $user->id));
+
+        // Log created user
+        $event = \enrol_lticoursetemplate\event\ltiuser_created::create(array(
+            'objectid' => 0,
+            'context' => context::instance_by_id($tool->contextid),
+            'other'    => array(
+                'username' => $user->username,
+                'email' => $user->email,
+            )
+        ));
+        $event->trigger();
     } else {
-        
-        if ( $dbuser->suspended ) {
+        if ($dbuser->suspended) {
             throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
             exit();
         }
 
         if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
             $user = $dbuser;
+
+            // Log created user
+            $event = \enrol_lticoursetemplate\event\ltiuser_matched::create(array(
+                'objectid' => 0,
+                'context' => context::instance_by_id($tool->contextid),
+                'other'    => array(
+                    'username' => $user->username,
+                    '
+                    ' => $dbuser->username,
+                )
+            ));
+            $event->trigger();
         } else {
             // If email is empty remove it, so we don't update the user with an empty email.
             if (empty($user->email)) {
@@ -122,7 +181,7 @@ if ($ltirequest->valid) {
     $image = false;
     if (!empty($ltirequest->info['user_image'])) {
         $image = $ltirequest->info['user_image'];
-    } else if (!empty($ltirequest->info['custom_user_image'])) {
+    } elseif (!empty($ltirequest->info['custom_user_image'])) {
         $image = $ltirequest->info['custom_user_image'];
     }
 
@@ -140,7 +199,7 @@ if ($ltirequest->valid) {
 
         // May still be set from previous session, so unset it.
         unset($SESSION->forcepagelayout);
-    } else if ($context->contextlevel == CONTEXT_MODULE) {
+    } elseif ($context->contextlevel == CONTEXT_MODULE) {
         $cmid = $context->instanceid;
         $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
         $urltogo = new moodle_url('/mod/' . $cm->modname . '/view.php', array('id' => $cm->id));

@@ -77,3 +77,7 @@ $string['admindefaultvalues'] = 'Manager default values';
 $string['onlyonetoolallowed'] = 'Only one tool can be created for a course';
 $string['useraccountsuspended'] = 'Your account has been suspended';
 $string['usernamecreateerror'] = 'Your username could not be created';
+$string['lticonnection_launched'] = 'LTI connection has been made';
+$string['ltiname_created'] = 'LTI name has been genearted';
+$string['ltiuser_created'] = 'LTI new user has been created';
+$string['ltiuser_matched'] = 'LTI user has been matched with existing moodle user';
