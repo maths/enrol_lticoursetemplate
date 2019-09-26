@@ -50,16 +50,9 @@ if ($ltirequest->valid) {
     $event = \enrol_lticoursetemplate\event\lticonnection_launched::create(array(
         'objectid' => 0,
         'context' => context::instance_by_id($tool->contextid),
-        'other'    => array(
-            'oauth_consumer_key' => $ltirequest->info['oauth_consumer_key'],
-            'context_id'   => $ltirequest->info['context_id'],
-            'context_title' => $ltirequest->info['context_title'],
-            'user_id' => $ltirequest->info['user_id'],
-            'lis_person_name_given' => $ltirequest->info['lis_person_name_given'],
-            'lis_person_name_family' => $ltirequest->info['lis_person_name_family'],
-            'lis_email' => $ltirequest->getUserEmail(),
-        )
+        'other'    => (array) $ltirequest
     ));
+
     $event->trigger();
 
 
@@ -144,6 +137,14 @@ if ($ltirequest->valid) {
         ));
         $event->trigger();
     } else {
+        $event = \enrol_lticoursetemplate\event\dbuser_retrieved::create(array(
+            'objectid' => 0,
+            'context' => context::instance_by_id($tool->contextid),
+            'other' => (array) $dbuser
+        ));
+
+        $event->trigger();
+
         if ($dbuser->suspended) {
             throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
             exit();

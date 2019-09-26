@@ -25,7 +25,7 @@ namespace enrol_lticoursetemplate\event;
 
 defined('MOODLE_INTERNAL') || die();
 /**
- * The lticonnection_launched event class.
+ * The dbuser_retrieved event class.
  *
  * @property-read array $other {
  *      Extra information about event.
@@ -37,7 +37,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2019 Arek Juszczyk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
-class lticonnection_launched extends \core\event\base
+class dbuser_retrieved extends \core\event\base
 {
     protected function init()
     {
@@ -48,11 +48,12 @@ class lticonnection_launched extends \core\event\base
  
     public static function get_name()
     {
-        return get_string('lticonnection_launched', 'enrol_lticoursetemplate');
+        return get_string('dbuser_retrieved', 'enrol_lticoursetemplate');
     }
  
     public function get_description()
     {
+        // Print the array
         return print_r($this->other, true);
     }
  
