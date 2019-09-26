@@ -152,14 +152,13 @@ if ($ltirequest->valid) {
         if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
             $user = $dbuser;
 
-            // Log created user
+            // Log matched users
             $event = \enrol_lticoursetemplate\event\ltiuser_matched::create(array(
                 'objectid' => 0,
                 'context' => context::instance_by_id($tool->contextid),
                 'other'    => array(
                     'username' => $user->username,
-                    '
-                    ' => $dbuser->username,
+                    'db_username' => $dbuser->username,
                 )
             ));
             $event->trigger();
