@@ -76,3 +76,4 @@ $string['manager_help'] = 'Set user id that will run course backup/restore. By d
 $string['admindefaultvalues'] = 'Manager default values';
 $string['onlyonetoolallowed'] = 'Only one tool can be created for a course';
 $string['useraccountsuspended'] = 'Your account has been suspended';
+$string['usernamecreateerror'] = 'Your username could not be created';

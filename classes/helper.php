@@ -89,11 +89,10 @@ class helper {
     public static function create_username($consumerkey, $ltiuserid) {
         if (!empty($ltiuserid) && !empty($consumerkey)) {
             $userkey = $consumerkey . ':' . $ltiuserid;
+            return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
         } else {
-            $userkey = false;
+            throw new moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
         }
-
-        return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
     }
 
     /**
