@@ -146,6 +146,14 @@ if ($ltirequest->valid) {
         $event->trigger();
 
         if ($dbuser->suspended) {
+            // Log suspended users access try
+            $event = \enrol_lticoursetemplate\event\ltiuser_suspended::create(array(
+                'objectid' => $dbuser->id,
+                'context' => context::instance_by_id($tool->contextid),
+                'other'    => (array) $dbuser
+            ));
+            $event->trigger();
+
             throw new moodle_exception('useraccountsuspended', 'enrol_lticoursetemplate');
             exit();
         }

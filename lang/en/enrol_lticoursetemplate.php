@@ -82,3 +82,4 @@ $string['ltiname_created'] = 'LTI name has been generated';
 $string['ltiuser_created'] = 'LTI new user has been created';
 $string['ltiuser_matched'] = 'LTI user has been matched with existing moodle user';
 $string['dbuser_retrieved'] = 'LTI - moodle user retrieved';
+$string['ltiuser_suspended'] = 'LTI - no login, account suspended';
