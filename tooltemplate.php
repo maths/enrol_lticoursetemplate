@@ -46,7 +46,7 @@ if ($ltirequest->valid) {
         $ltirequest->isInstructor()
     );
 
-    // Log lti request data
+    // Log lti request data.
     $event = \enrol_lticoursetemplate\event\lticonnection_launched::create(array(
         'objectid' => 0,
         'context' => context::instance_by_id($tool->contextid),
@@ -84,7 +84,7 @@ if ($ltirequest->valid) {
         $ltirequest->info['user_id']
     );
 
-    // Log generated user name
+    // Log generated user name.
     $event = \enrol_lticoursetemplate\event\ltiname_created::create(array(
         'objectid' => 0,
         'context' => context::instance_by_id($tool->contextid),
@@ -95,7 +95,7 @@ if ($ltirequest->valid) {
         )
     ));
     $event->trigger();
-    
+
     if (!empty($ltirequest->info['lis_person_name_given'])) {
         $user->firstname = $ltirequest->info['lis_person_name_given'];
     } else {
@@ -126,7 +126,7 @@ if ($ltirequest->valid) {
         // Get the updated user record.
         $user = $DB->get_record('user', array('id' => $user->id));
 
-        // Log created user
+        // Log created user.
         $event = \enrol_lticoursetemplate\event\ltiuser_created::create(array(
             'objectid' => 0,
             'context' => context::instance_by_id($tool->contextid),
@@ -146,7 +146,7 @@ if ($ltirequest->valid) {
         $event->trigger();
 
         if ($dbuser->suspended) {
-            // Log suspended users access try
+            // Log suspended users access try.
             $event = \enrol_lticoursetemplate\event\ltiuser_suspended::create(array(
                 'objectid' => $dbuser->id,
                 'context' => context::instance_by_id($tool->contextid),
@@ -161,7 +161,7 @@ if ($ltirequest->valid) {
         if (\enrol_lticoursetemplate\helper::user_match($user, $dbuser)) {
             $user = $dbuser;
 
-            // Log matched users
+            // Log matched users.
             $event = \enrol_lticoursetemplate\event\ltiuser_matched::create(array(
                 'objectid' => 0,
                 'context' => context::instance_by_id($tool->contextid),
@@ -189,7 +189,7 @@ if ($ltirequest->valid) {
     $image = false;
     if (!empty($ltirequest->info['user_image'])) {
         $image = $ltirequest->info['user_image'];
-    } elseif (!empty($ltirequest->info['custom_user_image'])) {
+    } else if (!empty($ltirequest->info['custom_user_image'])) {
         $image = $ltirequest->info['custom_user_image'];
     }
 
@@ -207,7 +207,7 @@ if ($ltirequest->valid) {
 
         // May still be set from previous session, so unset it.
         unset($SESSION->forcepagelayout);
-    } elseif ($context->contextlevel == CONTEXT_MODULE) {
+    } else if ($context->contextlevel == CONTEXT_MODULE) {
         $cmid = $context->instanceid;
         $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
         $urltogo = new moodle_url('/mod/' . $cm->modname . '/view.php', array('id' => $cm->id));

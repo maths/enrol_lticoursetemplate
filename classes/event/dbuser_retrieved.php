@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 /**
  * The EVENTNAME event.
  *
@@ -37,28 +37,24 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2019 Arek Juszczyk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
-class dbuser_retrieved extends \core\event\base
-{
-    protected function init()
-    {
-        $this->data['crud'] = 'c'; // c(reate), r(ead), u(pdate), d(elete)
+class dbuser_retrieved extends \core\event\base {
+
+    protected function init() {
+        $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
         $this->data['objecttable'] = 'enrol_lti_ct_tools';
     }
- 
-    public static function get_name()
-    {
+
+    public static function get_name() {
         return get_string('dbuser_retrieved', 'enrol_lticoursetemplate');
     }
- 
-    public function get_description()
-    {
-        // Print the array
+
+    public function get_description() {
+        // Print the array.
         return print_r($this->other, true);
     }
- 
-    public function get_url()
-    {
+
+    public function get_url() {
         return new \moodle_url('no url', array('parameter' => 'value'));
     }
 }
