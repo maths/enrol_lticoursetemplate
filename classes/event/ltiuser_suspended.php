@@ -39,6 +39,8 @@ defined('MOODLE_INTERNAL') || die();
  **/
 class ltiuser_suspended extends \core\event\base {
 
+    const debugFlag = 0;
+
     protected function init() {
         $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
@@ -50,7 +52,11 @@ class ltiuser_suspended extends \core\event\base {
     }
 
     public function get_description() {
-        return print_r($this->other, true);
+        if (self::debugFlag) {
+            return print_r($this->other, true);
+        } else {
+            return "Account suspended '{$this->other['email']}', '{$this->other['firstname']}' '{$this->other['lastname']}'.";
+        }
     }
 
     public function get_url() {

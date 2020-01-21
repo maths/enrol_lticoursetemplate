@@ -39,6 +39,8 @@ defined('MOODLE_INTERNAL') || die();
  **/
 class lticonnection_launched extends \core\event\base {
 
+    const debugFlag = 0;
+
     protected function init() {
         $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
@@ -50,7 +52,11 @@ class lticonnection_launched extends \core\event\base {
     }
 
     public function get_description() {
-        return print_r($this->other, true);
+        if (self::debugFlag) {
+            return print_r($this->other, true);
+        } else {
+            return "A new LTI connection has been made for '{$this->other['lis_person_contact_email_primary']}'.";
+        }
     }
 
     public function get_url() {

@@ -39,6 +39,8 @@ defined('MOODLE_INTERNAL') || die();
  **/
 class ltiname_created extends \core\event\base {
 
+    const debugFlag = 0;
+
     protected function init() {
         $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
@@ -50,8 +52,12 @@ class ltiname_created extends \core\event\base {
     }
 
     public function get_description() {
-        return "A new LTI name has been created: username: '{$this->other['username']}'" .
+        if (self::debugFlag) {
+            return print_r($this->other, true);
+        } else {
+            return "A new LTI name has been created: username: '{$this->other['username']}'" .
             " from oauth_consumer_key: '{$this->other['oauth_consumer_key']}' and user_id: '{$this->other['user_id']}'";
+        }
     }
 
     public function get_url() {
