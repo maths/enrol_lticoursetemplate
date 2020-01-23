@@ -39,7 +39,7 @@ defined('MOODLE_INTERNAL') || die();
  **/
 class ltiuser_created extends \core\event\base {
 
-    const debugFlag = 0;
+    const DEBUGFLAG = 0;
 
     protected function init() {
         $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
@@ -52,8 +52,10 @@ class ltiuser_created extends \core\event\base {
     }
 
     public function get_description() {
-        if (self::debugFlag) {
+        if (self::DEBUGFLAG) {
+            // @codingStandardsIgnoreStart
             return print_r($this->other, true);
+            // @codingStandardsIgnoreEnd
         } else {
             return "A new LTI user has been created: username: '{$this->other['username']}', email: '{$this->other['email']}'";
         }

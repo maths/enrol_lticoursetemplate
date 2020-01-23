@@ -31,7 +31,6 @@ $toolid = required_param('id', PARAM_INT);
 // Get the tool.
 $oldtool = \enrol_lticoursetemplate\helper::get_lti_tool($toolid);
 
-
 // Create the BLTI request.
 $ltirequest = new BLTI($oldtool->secret, false, false);
 
