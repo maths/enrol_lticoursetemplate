@@ -380,7 +380,7 @@ class helper {
             $record['rolelearner'] = 5;
             $record['secret'] = $oldtool->secret;
             $record['membersync'] = 0;
-            // Not sure why we don't need this one:  $record['membersyncmode'] = 1;
+            // Not sure why we don't need this one:  $record['membersyncmode'] = 1.
 
             $toolinstance = $plugin->add_instance($course, $record);
 
