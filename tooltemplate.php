@@ -18,15 +18,21 @@
  * The main entry point for the external system.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__) . '/../../config.php');
+require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/enrol/lticoursetemplate/ims-blti/blti.php');
 
 $toolid = required_param('id', PARAM_INT);
+
+$PAGE->set_context(context_system::instance());
+$url = new moodle_url('/enrol/lticoursetemplate/tooltemplate.php');
+$PAGE->set_url($url);
+$PAGE->set_pagelayout('popup');
+$PAGE->set_title(get_string('opentool', 'enrol_lticoursetemplate'));
 
 // Get the tool.
 $oldtool = \enrol_lticoursetemplate\helper::get_lti_tool($toolid);
@@ -36,6 +42,7 @@ $ltirequest = new BLTI($oldtool->secret, false, false);
 
 // Correct launch request.
 if ($ltirequest->valid) {
+
     // Get the new tool.
     $tool = \enrol_lticoursetemplate\helper::get_lti_new_tool(
         $toolid,
@@ -54,7 +61,6 @@ if ($ltirequest->valid) {
 
     $event->trigger();
 
-
     // Check if the authentication plugin is disabled.
     if (!is_enabled_auth('lti')) {
         print_error('pluginnotenabled', 'auth', '', get_string('pluginname', 'auth_lti'));
@@ -72,7 +78,7 @@ if ($ltirequest->valid) {
         print_error('enrolisdisabled', 'enrol_lticoursetemplate');
         exit();
     }
-
+    //*********** new stuff *****************************************************************
     // Before we do anything check that the context is valid.
     $context = context::instance_by_id($tool->contextid);
 
@@ -290,6 +296,51 @@ if ($ltirequest->valid) {
         // All done, redirect the user to where they want to go.
         redirect($urltogo);
     }
+    //***************************************************************************************
+    
+    
+    //*********** original stuff ************************************************************
+    // $consumerkey = required_param('oauth_consumer_key', PARAM_TEXT);
+    // $ltiversion = optional_param('lti_version', null, PARAM_TEXT);
+    // $messagetype = required_param('lti_message_type', PARAM_TEXT);
+
+    // // Only accept launch requests from this endpoint.
+    // if ($messagetype != "basic-lti-launch-request") {
+    //     print_error('invalidrequest', 'enrol_lticoursetemplate');
+    //     exit();
+    // }
+
+    // // Initialise tool provider.
+    // $toolprovider = new \enrol_lticoursetemplate\tool_provider($toolid);
+
+    // // Special handling for LTIv1 launch requests.
+    // if ($ltiversion === \IMSGlobal\LTI\ToolProvider\ToolProvider::LTI_VERSION1) {
+    //     $dataconnector = new \enrol_lticoursetemplate\data_connector();
+    //     $consumer = new \IMSGlobal\LTI\ToolProvider\ToolConsumer($consumerkey, $dataconnector);
+    //     // Check if the consumer has already been registered to the enrol_lti_lti2_consumer table. Register if necessary.
+    //     $consumer->ltiVersion = \IMSGlobal\LTI\ToolProvider\ToolProvider::LTI_VERSION1;
+    //     // For LTIv1, set the tool secret as the consumer secret.
+    //     $consumer->secret = $tool->secret;
+    //     $consumer->name = optional_param('tool_consumer_instance_name', '', PARAM_TEXT);
+    //     $consumer->consumerName = $consumer->name;
+    //     $consumer->consumerGuid = optional_param('tool_consumer_instance_guid', null, PARAM_TEXT);
+    //     $consumer->consumerVersion = optional_param('tool_consumer_info_version', null, PARAM_TEXT);
+    //     $consumer->enabled = true;
+    //     $consumer->protected = true;
+    //     $consumer->save();
+
+    //     // Set consumer to tool provider.
+    //     $toolprovider->consumer = $consumer;
+    //     // Map tool consumer and published tool, if necessary.
+    //     $toolprovider->map_tool_to_consumer();
+    // }
+
+    // // Handle the request.
+    // $toolprovider->handleRequest();
+
+    // echo $OUTPUT->header();
+    // echo $OUTPUT->footer();
+    //***************************************************************************************
 } else {
     echo $ltirequest->message;
 }
