@@ -43,14 +43,14 @@ class backup_enrol_lticoursetemplate_plugin extends backup_enrol_plugin {
         $plugin = $this->get_plugin_element();
 
         // Define our elements.
-        $tool = new backup_nested_element('ct_tool', array('id'), array(
+        $tool = new backup_nested_element('enrol_ct_tools', array('id'), array(
             'enrolid', 'contextid', 'institution', 'lang', 'timezone', 'maxenrolled', 'maildisplay', 'city',
             'country', 'gradesync', 'gradesynccompletion', 'membersync', 'membersyncmode',  'roleinstructor',
             'rolelearner', 'secret', 'ltiversion', 'timecreated', 'timemodified'));
 
-        $users = new backup_nested_element('users');
+        $users = new backup_nested_element('ct_users');
 
-        $user = new backup_nested_element('user', array('id'), array(
+        $user = new backup_nested_element('ct_user', array('id'), array(
             'userid', 'toolid', 'serviceurl', 'sourceid', 'consumerkey', 'consumersecret', 'membershipurl',
             'membershipsid'));
 
