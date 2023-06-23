@@ -684,7 +684,7 @@ function enrol_lticoursetemplate_extend_navigation_course($navigation, $course, 
         if ($ltiplugin->can_add_instance($course->id)) {
             $url = new moodle_url('/enrol/lticoursetemplate/index.php', ['courseid' => $course->id]);
             $settingsnode = navigation_node::create(get_string('sharedexternaltools', 'enrol_lticoursetemplate'), $url,
-                navigation_node::TYPE_SETTING, null, 'publishedtools', new pix_icon('i/settings', ''));
+                navigation_node::TYPE_SETTING, null, 'publishedcttools', new pix_icon('i/settings', ''));
             $navigation->add_node($settingsnode);
         }
     }
