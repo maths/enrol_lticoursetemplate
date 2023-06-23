@@ -248,7 +248,7 @@ if ($ltirequest->valid) {
     $serviceurl = (!empty($ltirequest->info['lis_outcome_service_url'])) ? $ltirequest->info['lis_outcome_service_url'] : '';
 
     // Check if we have recorded this user before.
-    if ($userlog = $DB->get_record('enrol_lti_ct_users', array('toolid' => $tool->id, 'userid' => $user->id))) {
+    if ($userlog = $DB->get_record('enrol_ct_users', array('toolid' => $tool->id, 'userid' => $user->id))) {
         if ($userlog->sourceid != $sourceid) {
             $userlog->sourceid = $sourceid;
         }
@@ -256,7 +256,7 @@ if ($ltirequest->valid) {
             $userlog->serviceurl = $serviceurl;
         }
         $userlog->lastaccess = time();
-        $DB->update_record('enrol_lti_ct_users', $userlog);
+        $DB->update_record('enrol_ct_users', $userlog);
     } else {
         // Add the user details so we can use it later when syncing grades and members.
         $userlog = new stdClass();
@@ -281,7 +281,7 @@ if ($ltirequest->valid) {
         } else {
             $userlog->membershipsid = '';
         }
-        $DB->insert_record('enrol_lti_ct_users', $userlog);
+        $DB->insert_record('enrol_ct_users', $userlog);
     }
 
     // Finalise the user log in.

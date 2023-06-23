@@ -44,7 +44,7 @@ class ltiname_created extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c'; // Read these codes as c(reate), r(ead), u(pdate), d(elete).
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'enrol_lti_ct_tools';
+        $this->data['objecttable'] = 'enrol_ct_tools';
     }
 
     public static function get_name() {
