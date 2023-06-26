@@ -512,5 +512,223 @@ function xmldb_enrol_lticoursetemplate_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2022062803, 'enrol', 'lticoursetemplate');
     }
 
+    if ($oldversion < 2023062200) {
+        // Add missing tables
+
+        // Define table enrol_ct_lti2_consumer to be created.
+        $table = new xmldb_table('enrol_ct_lti2_consumer');
+
+        // Adding fields to table enrol_ct_lti2_consumer.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('consumerkey256', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('consumerkey', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('secret', XMLDB_TYPE_CHAR, '1024', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('ltiversion', XMLDB_TYPE_CHAR, '10', null, null, null, null);
+        $table->add_field('consumername', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('consumerversion', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('consumerguid', XMLDB_TYPE_CHAR, '1024', null, null, null, null);
+        $table->add_field('profile', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('toolproxy', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('settings', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('protected', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('enablefrom', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('enableuntil', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('lastaccess', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('updated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_consumer.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Adding indexes to table enrol_ct_lti2_consumer.
+        $table->add_index('consumerkey256_uniq', XMLDB_INDEX_UNIQUE, ['consumerkey256']);
+
+        // Conditionally launch create table for enrol_ct_lti2_consumer.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        
+        // Update lti user information for LTI 2.0 users having the wrong consumer secret recorded.
+        // This applies to any LTI 2.0 user who has launched the tool (i.e. has lastaccess) and fixes a non-functional grade sync
+        // for LTI 2.0 consumers.
+        $sql = "SELECT lu.id, lc.secret
+                  FROM {enrol_lti_users} lu
+                  JOIN {enrol_lti_lti2_consumer} lc
+                    ON (" . $DB->sql_compare_text('lu.consumerkey', 255) . " = lc.consumerkey256)
+                 WHERE lc.ltiversion = :ltiversion
+                   AND " . $DB->sql_compare_text('lu.consumersecret') . " != lc.secret
+                   AND lu.lastaccess IS NOT NULL";
+        $affectedltiusersrs = $DB->get_recordset_sql($sql, ['ltiversion' => 'LTI-2p0']);
+        foreach ($affectedltiusersrs as $ltiuser) {
+            $DB->set_field('enrol_lti_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
+        }
+        $affectedltiusersrs->close();
+
+        // Update lti user information for any users missing a consumer secret.
+        // This applies to any user who has launched the tool (i.e. has lastaccess) but who doesn't have a secret recorded.
+        // This fixes a bug where enrol_lti_users records are created first during a member sync, and are missing the secret,
+        // even despite having launched the tool subsequently.
+        $sql = "SELECT lu.id, lc.secret
+                  FROM {enrol_lti_users} lu
+                  JOIN {enrol_lti_lti2_consumer} lc
+                    ON (" . $DB->sql_compare_text('lu.consumerkey', 255) . " = lc.consumerkey256)
+                 WHERE lu.consumersecret IS NULL
+                   AND lu.lastaccess IS NOT NULL";
+        $affectedltiusersrs = $DB->get_recordset_sql($sql);
+        foreach ($affectedltiusersrs as $ltiuser) {
+            $DB->set_field('enrol_lti_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
+        }
+        $affectedltiusersrs->close();
+
+
+        // Define table enrol_ct_lti2_tool_proxy to be created.
+        $table = new xmldb_table('enrol_ct_lti2_tool_proxy');
+
+        // Adding fields to table enrol_ct_lti2_tool_proxy.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('toolproxykey', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('consumerid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('toolproxy', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('updated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_tool_proxy.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('toolproxykey_uniq', XMLDB_KEY_UNIQUE, ['toolproxykey']);
+        $table->add_key('consumerid', XMLDB_KEY_FOREIGN, ['consumerid'], 'enrol_ct_lti2_consumer', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_tool_proxy.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_lti2_context to be created.
+        $table = new xmldb_table('enrol_ct_lti2_context');
+
+        // Adding fields to table enrol_ct_lti2_context.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('consumerid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('lticontextkey', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('type', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_field('settings', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('updated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_context.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('consumerid', XMLDB_KEY_FOREIGN, ['consumerid'], 'enrol_ct_lti2_consumer', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_context.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_lti2_nonce to be created.
+        $table = new xmldb_table('enrol_ct_lti2_nonce');
+
+        // Adding fields to table enrol_ct_lti2_nonce.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('consumerid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('value', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('expires', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_nonce.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('consumerid', XMLDB_KEY_FOREIGN, ['consumerid'], 'enrol_ct_lti2_consumer', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_nonce.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_lti2_resource_link to be created.
+        $table = new xmldb_table('enrol_ct_lti2_resource_link');
+
+        // Adding fields to table enrol_ct_lti2_resource_link.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('contextid', XMLDB_TYPE_INTEGER, '11', null, null, null, null);
+        $table->add_field('consumerid', XMLDB_TYPE_INTEGER, '11', null, null, null, null);
+        $table->add_field('ltiresourcelinkkey', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('settings', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('primaryresourcelinkid', XMLDB_TYPE_INTEGER, '11', null, null, null, null);
+        $table->add_field('shareapproved', XMLDB_TYPE_INTEGER, '1', null, null, null, null);
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('updated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_resource_link.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('contextid', XMLDB_KEY_FOREIGN, ['contextid'], 'enrol_ct_lti2_context', ['id']);
+        $table->add_key('primaryresourcelinkid', XMLDB_KEY_FOREIGN, ['primaryresourcelinkid'], 'enrol_ct_lti2_res_link', ['id']);
+        $table->add_key('consumerid', XMLDB_KEY_FOREIGN, ['consumerid'], 'enrol_ct_lti2_consumer', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_resource_link.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_lti2_share_key to be created.
+        $table = new xmldb_table('enrol_ct_lti2_share_key');
+
+        // Adding fields to table enrol_ct_lti2_share_key.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('sharekey', XMLDB_TYPE_CHAR, '32', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('resourcelinkid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('autoapprove', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('expires', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_share_key.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('sharekey', XMLDB_KEY_UNIQUE, ['sharekey']);
+        $table->add_key('resourcelinkid', XMLDB_KEY_FOREIGN_UNIQUE, ['resourcelinkid'], 'enrol_ct_lti2_res_link', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_share_key.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_lti2_user_result to be created.
+        $table = new xmldb_table('enrol_ct_lti2_user_result');
+
+        // Adding fields to table enrol_ct_lti2_user_result.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('resourcelinkid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('ltiuserkey', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('ltiresultsourcedid', XMLDB_TYPE_CHAR, '1024', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('created', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('updated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_lti2_user_result.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('resourcelinkid', XMLDB_KEY_FOREIGN, ['resourcelinkid'], 'enrol_ct_lti2_res_link', ['id']);
+
+        // Conditionally launch create table for enrol_ct_lti2_user_result.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table enrol_ct_tool_cons_map to be created.
+        $table = new xmldb_table('enrol_ct_tool_cons_map');
+
+        // Adding fields to table enrol_ct_tool_cons_map.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('toolid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('consumerid', XMLDB_TYPE_INTEGER, '11', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table enrol_ct_tool_cons_map.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('toolid', XMLDB_KEY_FOREIGN, ['toolid'], 'enrol_ct_tools', ['id']);
+        $table->add_key('consumerid', XMLDB_KEY_FOREIGN, ['consumerid'], 'enrol_ct_lti2_consumer', ['id']);
+
+        // Conditionally launch create table for enrol_ct_tool_cons_map.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Lti savepoint reached.
+        upgrade_plugin_savepoint(true, 2023062200, 'enrol', 'lticoursetemplate');
+    }
+
     return true;
 }
