@@ -14,6 +14,18 @@ NOTE: the plugin requires a user ID that is capable to run course backup/restore
 
 # Configure moodle to be a Tool Provider, using Template Courses
 
+This plugin will accept LTI 1.1 and 1.3 connections.
+
+Note that LTI 1.1 is depreciated by 1EdTech
+
+**Moodles internal LTI authentication gives _different_ usernames when using _different_ versions of LTI connection. This tool inherits that failing.**
+
+This plugin will connect to the same course [with different LTI connectors] if the same identifer is used for both connections.
+
+- The LTI 1.3 "Custom Parameter" `platform` <=> the LTI 1.1 `key` 
+
+# Connecting using an LTI 1.3 connection
+
 Connecting via LTI 1.3 is a multi-step process
 
 ## Step 0 - Ensure the plugins are enabled
@@ -51,7 +63,6 @@ Go to `Site administration` -> `Plugins` -> `Enrolments` -> `Tool registration`
 
 You may also want to send them a URL to the `icon` for your service.
 
-## Step 2 - Wait for customer to configure their VLE & send you _Configuration_ details
 
 - If they are BlackBoard Ultra, they will only send back a `Deployment ID`
 - If they use the `Registration URL`, this will configure their "Platform" _and_ auto-configure the appropriate details back to StackEd. (This may be a "Moodle-specific" thing)
@@ -146,12 +157,13 @@ You can _restore_ a moodle backup course (.mbz) file to the course, which will t
 `Site administration` -> `Courses` -> `Restore course`
     Standard Moodle backup process, and it can be put into any category (miscellaneous is fine).  
 
-### Send the customer the required Custom Parameters
+### Send the customer the **TWO** required Custom Parameters
 
 The LTI Course Template Tool requires 2 custom parameters from the customer's connection: an `id` to identify the course to use as the template; and `platform` to seed the short-code for the created course
 
 - `id` is the value from the `Custom properties` above
-- `platform` should be a _short_ code for the customer - it is used to seed the short code for courses created from the template
+- `platform` should be a _short_ code for the customer - it is used to seed the short code for courses created from the template.
+  - If the connection is to match an LTI 1.1 connection, this value needs to be identical to the LTI 1.1 `key`
 
 The customer needs to add these to their Tool Configuration.
  
@@ -159,9 +171,58 @@ The customer needs to add these to their Tool Configuration.
 
 Get the customer to test the connection works
 
+# Connecting using an LTI 1.1 connection
+
+## Step 0 - Ensure the plugins are enabled
+
+Go to `Site administration` -> `Plugins` -> `Authentication` -> `Manage authentication` and ensure `LTI` is _Enabled_
+
+Go to `Site administration` -> `Plugins` -> `Enrolments` -> `Manage enrol plugins` and ensure `Publish as LTI Course Template tool` is _Enabled_ (and `Publish as LTI tool` is _Disabled_)
+
+## Step 1 - Creating a template course for the customer
+
+The plugin works by using a base course, and then, for each LTI connection from the VLE, creating a _new course_ using the _base course_ as a template
+
+This new course will take the name of the course from the LTI connection.
+
+### Create the base course
+
+Go to `Site administration` -> `Courses` -> `Manages courses and categories`
+
+- We suggest creating a new `category` using the name of the customer.... unless you are creating a new course for an existing customer
+- Create a new `course`
+  - The `full name` should be indicative of the customer
+  - The `short name` should be short, use only the characters `a-zA-Z0-9-`
+  - The `category` should be appropriate for the customer
+  - Set `visibility` to `hide` 
+  - Remove the tick enabling `end date`
+  - Click on `Save and return`
+- Click on the `cog` icon for the template course
+  - Under the `More` tab, select `Publish as LTI Course Template tools`
+  - Click on the `Legacy LTI (1.1/2.0)` tab
+  - Click `Add` to create a new connection
+    - Set the name to something sensible
+    - Under `User default values` (some fields are hidden under `Show more...`) you may want to set `City/town` and `Country`, and maybe set `Institution` to the customer's name
+    - Click `Add method`
+  - **Note the `Launch URL` and `Secret` entries**
+
+## Step 2 - Send the customer the configuration details for their VLE
+
+They need three items:
+
+- `Launch URL` - This is the URL used to connect to moodle system, and includes an `id` parameter specific to this connection.
+- `Secret` - the value from above.
+- `key` - This is not defined by the plugin, however is the seed for new Course Codes.
+  - If the connection is to match an LTI 1.3 connection, this value needs to be identical to the LTI 1.3 Custom Parameter `platform`
+
+
+## Step 3 - Test!
+
 ---
 
-# **Notes on manually registered moodle fields**
+# LTI 1.3 PROVIDER configuration
+
+Notes on manually configuring an External Tool when using this plugin
 
 **Tool Settings**
 - **Tool URL** == _Tool URL_
@@ -169,7 +230,7 @@ Get the customer to test the connection works
 - **Public keyset** == _JWKS URL_
 - **Initiate login** == _Initialte login URL_
 - **Redirection URI(s)** == _Tool URL_ & _Deep linking URL_
-- **Custom parameters** == clear, for now
+- **Custom parameters** == `id` and `platform`
 - **Default launch container** == `New window`
 - (`Supports Deep Linking (Content-Item Message)` checked)
 - **Content Selection URL** == _Deep linking URL_
@@ -179,17 +240,6 @@ Get the customer to test the connection works
 - **Share launcher's email with tool** == `Always`
   
 ---
-
-### LTI 1 version setup
-
-Set up Tool Consumer (general, in Learn):
-1. Add external tool to a course
-2. Insert launch URL and secret from the Tool Provider
-3. Type a unique string as Consumer key.  Use any string that will be the same for every LTI connections between the tool consumer and provider. THIS MUST BE UNIQUE FOR YOUR TOOL CONSUMER WITHIN TOOL PROVIDER! And must not be changed after the link has been used.
-
-NOTE: if “Allow frame embedding” HTTP Security option is not enabled in Moodle then the users will see an additional page with a link to redirect them to the Moodle course.
-
-DONE
 
 **Set up Blackboard Learn as Tool Consumer:**
 
