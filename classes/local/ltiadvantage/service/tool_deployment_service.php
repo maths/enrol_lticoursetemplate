@@ -116,7 +116,7 @@ class tool_deployment_service {
                  WHERE lu.ltideploymentid = :deploymentid";
         $instancesrs = $DB->get_recordset_sql($sql, ['deploymentid' => $deploymentid]);
         require_once($CFG->dirroot . '/enrol/lticoursetemplate/lib.php');
-        $enrollti = new \enrol_lti_plugin();
+        $enrollti = new \enrol_lticoursetemplate_plugin();
         foreach ($instancesrs as $instance) {
             $userid = $instance->ltiuserid;
             $enrollti->unenrol_user($instance, $userid);
