@@ -335,7 +335,7 @@ class tool_launch_service {
         $resource = helper::get_lti_new_tool(
             $oldresource[0]->id,
             $launchdata->custom['platform'],
-            $launchdata->context['label'],
+            $launchdata->context['id'],
             $launchdata->context['title'],
             $this->user_is_staff($launchdata, true) || $this->user_is_admin($launchdata)
         );
