@@ -493,7 +493,7 @@ class helper {
      * @since Moodle 3.2
      */
     public static function get_launch_url($toolid) {
-        return new \moodle_url('/enrol/lticoursetemplate/tool.php', array('id' => $toolid));
+        return new \moodle_url('/enrol/lticoursetemplate/tooltemplate.php', array('id' => $toolid));
     }
 
     /**
