@@ -554,31 +554,31 @@ function xmldb_enrol_lticoursetemplate_upgrade($oldversion) {
         // This applies to any LTI 2.0 user who has launched the tool (i.e. has lastaccess) and fixes a non-functional grade sync
         // for LTI 2.0 consumers.
         $sql = "SELECT lu.id, lc.secret
-                  FROM {enrol_lti_users} lu
-                  JOIN {enrol_lti_lti2_consumer} lc
+                  FROM {enrol_ct_users} lu
+                  JOIN {enrol_ct_lti2_consumer} lc
                     ON (" . $DB->sql_compare_text('lu.consumerkey', 255) . " = lc.consumerkey256)
                  WHERE lc.ltiversion = :ltiversion
                    AND " . $DB->sql_compare_text('lu.consumersecret') . " != lc.secret
                    AND lu.lastaccess IS NOT NULL";
         $affectedltiusersrs = $DB->get_recordset_sql($sql, ['ltiversion' => 'LTI-2p0']);
         foreach ($affectedltiusersrs as $ltiuser) {
-            $DB->set_field('enrol_lti_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
+            $DB->set_field('enrol_ct_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
         }
         $affectedltiusersrs->close();
 
         // Update lti user information for any users missing a consumer secret.
         // This applies to any user who has launched the tool (i.e. has lastaccess) but who doesn't have a secret recorded.
-        // This fixes a bug where enrol_lti_users records are created first during a member sync, and are missing the secret,
+        // This fixes a bug where enrol_ct_users records are created first during a member sync, and are missing the secret,
         // even despite having launched the tool subsequently.
         $sql = "SELECT lu.id, lc.secret
-                  FROM {enrol_lti_users} lu
-                  JOIN {enrol_lti_lti2_consumer} lc
+                  FROM {enrol_ct_users} lu
+                  JOIN {enrol_ct_lti2_consumer} lc
                     ON (" . $DB->sql_compare_text('lu.consumerkey', 255) . " = lc.consumerkey256)
                  WHERE lu.consumersecret IS NULL
                    AND lu.lastaccess IS NOT NULL";
         $affectedltiusersrs = $DB->get_recordset_sql($sql);
         foreach ($affectedltiusersrs as $ltiuser) {
-            $DB->set_field('enrol_lti_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
+            $DB->set_field('enrol_ct_users', 'consumersecret', $ltiuser->secret, ['id' => $ltiuser->id]);
         }
         $affectedltiusersrs->close();
 

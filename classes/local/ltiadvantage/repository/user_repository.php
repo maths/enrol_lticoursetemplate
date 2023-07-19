@@ -92,7 +92,7 @@ class user_repository {
     }
 
     /**
-     * Create the corresponding enrol_lti_user record from a user instance.
+     * Create the corresponding enrol_ct_users record from a user instance.
      *
      * @param user $user the user instance.
      * @return \stdClass the record.

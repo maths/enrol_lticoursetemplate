@@ -65,7 +65,7 @@ class manage_table extends \table_sql {
      * @param string $courseid The id of the course.
      */
     public function __construct($courseid) {
-        parent::__construct('enrol_lticoursetemplate_manage_table');
+        parent::__construct('enrol_ct_manage_table');
 
         $this->define_columns(array(
             'name',
