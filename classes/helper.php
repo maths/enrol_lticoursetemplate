@@ -373,7 +373,8 @@ class helper {
                 'rolelearner' => $oldtool->rolelearner,
                 'provisioningmodelearner' => $oldtool->provisioningmodelearner,
                 'provisioningmodeinstructor' => $oldtool->provisioningmodeinstructor,
-                'membersyncmode' => $oldtool->membersyncmode
+                'membersyncmode' => $oldtool->membersyncmode,
+                'gradesync' => $oldtool->gradesync
             ]);
 
             // Save the course in the plugin table.
