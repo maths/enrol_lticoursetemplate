@@ -91,7 +91,7 @@ class helper {
             $userkey = $consumerkey . ':' . $ltiuserid;
             return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
         } else {
-            throw new moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
+            throw new \moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
             exit();
         }
     }
@@ -325,12 +325,12 @@ class helper {
 
         // Platform key is required.
         if (!isset($platform)) {
-            throw new moodle_exception('invalidplatform', 'enrol_lticoursetemplate');
+            throw new \moodle_exception('invalidplatform', 'enrol_lticoursetemplate');
         }
 
         // Label (shortname) is required.
         if (!isset($label)) {
-            throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
+            throw new \moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
 
         // Construct "unique" shortname.
