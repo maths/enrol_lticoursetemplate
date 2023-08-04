@@ -54,6 +54,7 @@ class http_client implements IHttpClient {
     public function request(string $method, string $url, array $options): IHttpResponse {
         $this->curlclient->resetHeader();
         $this->curlclient->resetopt();
+
         if (isset($options['headers'])) {
             $headers = $options['headers'];
             array_walk(
@@ -64,6 +65,7 @@ class http_client implements IHttpClient {
             );
             $this->curlclient->setHeader($headers);
         }
+
         if ($method == 'POST') {
             $body = $options['body'] ?? null;
             $body = $body ?? (!empty($options['form_params']) ? http_build_query($options['form_params'], '' , '&') : null);
@@ -75,6 +77,7 @@ class http_client implements IHttpClient {
         }
 
         $info = $this->curlclient->get_info();
+
         if (!$this->curlclient->get_errno() && !$this->curlclient->error) {
             // No errors, so format the response.
             $headersize = $info['header_size'];
@@ -84,21 +87,28 @@ class http_client implements IHttpClient {
             $parsedresponseheaders = [
                 'httpstatus' => array_shift($headerlines)
             ];
+
             foreach ($headerlines as $headerline) {
                 $headerbits = explode(':', $headerline, 2);
+                
                 if (count($headerbits) == 2) {
                     // Only parse headers having colon separation.
                     $parsedresponseheaders[$headerbits[0]] = $headerbits[1];
                 }
             }
+
             $response = new http_response(['headers' => $parsedresponseheaders, 'body' => $resbody], intval($info['http_code']));
+
             if ($response->getStatusCode() >= 400) {
                 throw new http_exception($response, "An HTTP error status was received(orginal): '{$resbody}'");
             }
+
             return $response;
         }
+
         // The curl client experienced errors, so report that.
         throw new \Exception("There was a cURL error when making the request: errno: {$this->curlclient->get_errno()},
-            error: {$this->curlclient->error}.");
+            error: {$this->curlclient->error}."
+        );
     }
 }
