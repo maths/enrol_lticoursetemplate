@@ -280,7 +280,7 @@ class sync_members extends scheduled_task {
 
                 // Check if this user has already been registered in the enrol_ct_users table.
                 if (!$DB->record_exists('enrol_ct_users', ['toolid' => $tool->id, 'userid' => $user->id])) {
-                    // Create an initial enrol_lti_user record that we can use later when syncing grades and members.
+                    // Create an initial enrol_ct_users record that we can use later when syncing grades and members.
                     $userlog = new stdClass();
                     $userlog->userid = $user->id;
                     $userlog->toolid = $tool->id;
