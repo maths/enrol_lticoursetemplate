@@ -59,7 +59,7 @@ class published_resources_table extends \table_sql {
      * @param string $courseid The id of the course.
      */
     public function __construct($courseid) {
-        parent::__construct('enrol_lti_manage_table');
+        parent::__construct('enrol_ct_manage_table');
 
         $this->define_columns(array(
             'name',
