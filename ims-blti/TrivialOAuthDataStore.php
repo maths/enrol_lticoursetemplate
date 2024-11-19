@@ -1,6 +1,6 @@
 <?php
 
-require_once($CFG->dirroot . '/enrol/lticoursetemplate/ims-blti/OAuth.php');
+require_once($CFG->dirroot . '/enrol/lti/ims-blti/OAuth.php');
 
 /**
  * A Trivial memory-based store - no support for tokens
