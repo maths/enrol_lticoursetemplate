@@ -1,8 +1,10 @@
 # enrol_lticoursetemplate
 
-The purpose is to remove the need to create new courses by hand when providing access to Moodle courses by LTI.  This plugin provides an LTI service which enables users to automatically and silently clone a course template from a remote LTI connection.  It is designed to allow connection of one learning management system to Moodle, automatically giving each teacher the ability to create a new clean course tied to their consumer content system.
+The purpose is to remove the need to create new courses by hand when providing access to Moodle courses by LTI.  This plugin provides an LTI service so when a the first authenticated user accesses with a secret a Moodle sliently clones a template course automatically giving each teacher a new clean course tied to their consume content system.
 
-The basic useage is as follows.
+![Course menu for the plugin](./docs/images/lti_template_menu.png)
+
+## Basic usage
 
 1. Install as any normal Moodle plugin.
 2. Setup the "Tool Provider" in Moodle to expose an LTI service.
