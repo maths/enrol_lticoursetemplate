@@ -97,9 +97,6 @@ class ags_info {
                 throw new \coding_exception('Scope must be a string value');
             }
             $key = array_search($scope, $validscopes);
-            if ($key === false) {
-                throw new \coding_exception("Scope '{$scope}' is invalid.");
-            }
             if ($key == 0) {
                 $this->lineitemscopes[] = self::SCOPES_LINEITEM_READONLY;
             } else if ($key == 1) {
