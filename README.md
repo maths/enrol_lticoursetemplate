@@ -2,6 +2,16 @@
 
 The purpose is to remove the need to create new courses by hand when providing access to Moodle courses by LTI.  This plugin provides an LTI service so when a the first authenticated user accesses with a secret a Moodle sliently clones a template course automatically giving each teacher a new clean course tied to their consume content system.
 
+Basically, we run through this flowchart.
+
+1. Does the course requested exist?  If not, create a clone of the template course (linked to the course requesed by the user).
+2. Does the user exist?  If not, create a new use account on Moodle.  This account can only be used via the LTI plugin (no direct login permitted, avoiding the LTI).
+3. Is the user enrolled on the requested course (which now both exist)?  If not, enrol the user on the course with the student/teacher permissions which come via LTI.
+4. Login the user.
+5. Load the course page.
+
+This should all be transparent to the user - they arrive on the course page, with a user account and permissions matching those they had requsted via LTI.
+
 ![Course menu for the plugin](./docs/images/lti_template_menu.png)
 
 ## Basic usage
