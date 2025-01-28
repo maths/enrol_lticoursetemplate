@@ -29,7 +29,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use enrol_lticoursetemplate\local\ltiadvantage\lib\http_client;
+use core\http_client;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\issuer_database;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\launch_cache_session;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\application_registration_repository;
@@ -41,7 +41,7 @@ use enrol_lticoursetemplate\local\ltiadvantage\repository\user_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\service\tool_launch_service;
 use enrol_lticoursetemplate\local\ltiadvantage\utility\message_helper;
 use enrol_lticoursetemplate\event\ltiuser_suspended;
-use Packback\Lti1p3\ImsStorage\ImsCookie;
+use enrol_lti\local\ltiadvantage\lib\lti_cookie;
 use Packback\Lti1p3\LtiMessageLaunch;
 use Packback\Lti1p3\LtiServiceConnector;
 
@@ -65,14 +65,15 @@ if (empty($idtoken) && empty($launchid)) {
 // Support caching the launch and retrieving it after the account binding process described in auth::complete_login().
 $sesscache = new launch_cache_session();
 $issdb = new issuer_database(new application_registration_repository(), new deployment_repository());
-$cookie = new ImsCookie();
-$serviceconnector = new LtiServiceConnector($sesscache, new http_client(new curl()));
+$cookie = new lti_cookie();
+$serviceconnector = new LtiServiceConnector($sesscache, new http_client());
 if ($idtoken) {
     $messagelaunch = LtiMessageLaunch::new($issdb, $sesscache, $cookie, $serviceconnector)
-        ->validate();
+        ->initialize($_POST);
 }
+
 if ($launchid) {
-    $messagelaunch = LtiMessageLaunch::fromCache($launchid, $issdb, $sesscache, $serviceconnector);
+    $messagelaunch = LtiMessageLaunch::fromCache($launchid, $issdb, $sesscache, $cookie, $serviceconnector);
 }
 if (empty($messagelaunch)) {
     throw new moodle_exception('Bad launch. Message launch data could not be found');
