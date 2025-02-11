@@ -22,13 +22,13 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use enrol_lticoursetemplate\local\ltiadvantage\lib\http_client;
+ use core\http_client;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\launch_cache_session;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\issuer_database;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\application_registration_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\deployment_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\published_resource_repository;
-use Packback\Lti1p3\ImsStorage\ImsCookie;
+use enrol_lti\local\ltiadvantage\lib\lti_cookie;
 use Packback\Lti1p3\LtiDeepLinkResource;
 use Packback\Lti1p3\LtiLineitem;
 use Packback\Lti1p3\LtiMessageLaunch;
@@ -47,8 +47,8 @@ $grades = optional_param_array('grades', [], PARAM_INT);
 
 $sesscache = new launch_cache_session();
 $issdb = new issuer_database(new application_registration_repository(), new deployment_repository());
-$cookie = new ImsCookie();
-$serviceconnector = new LtiServiceConnector($sesscache, new http_client(new curl()));
+$cookie = new lti_cookie();
+$serviceconnector = new LtiServiceConnector($sesscache, new http_client());
 $messagelaunch = LtiMessageLaunch::fromCache($launchid, $issdb, $sesscache, $serviceconnector);
 
 if (!$messagelaunch->isDeepLinkLaunch()) {

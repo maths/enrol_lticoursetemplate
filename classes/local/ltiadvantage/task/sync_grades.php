@@ -18,7 +18,7 @@ namespace enrol_lticoursetemplate\local\ltiadvantage\task;
 
 use core\task\scheduled_task;
 use enrol_lticoursetemplate\helper;
-use enrol_lticoursetemplate\local\ltiadvantage\lib\http_client;
+use core\http_client;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\issuer_database;
 use enrol_lticoursetemplate\local\ltiadvantage\lib\launch_cache_session;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\application_registration_repository;
@@ -155,11 +155,11 @@ class sync_grades extends scheduled_task {
                         );
                         global $CFG;
                         require_once($CFG->libdir . '/filelib.php');
-                        $sc = new LtiServiceConnector(new launch_cache_session(), new http_client(new \curl()));
+                        $sc = new LtiServiceConnector(new launch_cache_session(), new http_client());
 
                         $lineitemurl = $gradeservice->get_lineitemurl();
                         $servicedata = [
-                            'lineitems' => $gradeservice->get_lineitemsurl()->out(false),
+                            'lineitems' => $lineitemsurl ? $lineitemsurl->out(false) : null,
                             'lineitem' => $lineitemurl ? $lineitemurl->out(false) : null,
                             'scope' => $gradeservice->get_scopes(),
                         ];
@@ -194,7 +194,8 @@ class sync_grades extends scheduled_task {
                         continue;
                     }
 
-                    if ($response['status'] == 200) {
+                    $successresponses = [200, 201, 202, 204];
+                    if (in_array($response['status'], $successresponses)) {
                         $user->set_lastgrade(grade_floatval($grade));
                         $syncedusergrades[$user->get_id()] = $user;
                         mtrace("Success - The grade '$floatgrade' $mtracecontent was sent.");
