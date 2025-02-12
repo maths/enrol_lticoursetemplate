@@ -158,6 +158,7 @@ class sync_grades extends scheduled_task {
                         $sc = new LtiServiceConnector(new launch_cache_session(), new http_client());
 
                         $lineitemurl = $gradeservice->get_lineitemurl();
+                        $lineitemsurl = $gradeservice->get_lineitemsurl();
                         $servicedata = [
                             'lineitems' => $lineitemsurl ? $lineitemsurl->out(false) : null,
                             'lineitem' => $lineitemurl ? $lineitemurl->out(false) : null,
