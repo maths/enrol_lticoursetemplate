@@ -28,7 +28,7 @@ use enrol_lticoursetemplate\local\ltiadvantage\lib\issuer_database;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\application_registration_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\deployment_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\published_resource_repository;
-use enrol_lti\local\ltiadvantage\lib\lti_cookie;
+use enrol_lticoursetemplate\local\ltiadvantage\lib\lti_cookie;
 use Packback\Lti1p3\LtiDeepLinkResource;
 use Packback\Lti1p3\LtiLineitem;
 use Packback\Lti1p3\LtiMessageLaunch;

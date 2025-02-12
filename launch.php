@@ -41,7 +41,7 @@ use enrol_lticoursetemplate\local\ltiadvantage\repository\user_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\service\tool_launch_service;
 use enrol_lticoursetemplate\local\ltiadvantage\utility\message_helper;
 use enrol_lticoursetemplate\event\ltiuser_suspended;
-use enrol_lti\local\ltiadvantage\lib\lti_cookie;
+use enrol_lticoursetemplate\local\ltiadvantage\lib\lti_cookie;
 use Packback\Lti1p3\LtiMessageLaunch;
 use Packback\Lti1p3\LtiServiceConnector;
 

@@ -34,8 +34,7 @@ use enrol_lticoursetemplate\local\ltiadvantage\lib\launch_cache_session;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\application_registration_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\deployment_repository;
 use enrol_lticoursetemplate\local\ltiadvantage\repository\published_resource_repository;
-use enrol_lti\local\ltiadvantage\lib\lti_cookie;
-use Packback\Lti1p3\ImsStorage\ImsCookie;
+use enrol_lticoursetemplate\local\ltiadvantage\lib\lti_cookie;
 use Packback\Lti1p3\LtiMessageLaunch;
 use Packback\Lti1p3\LtiServiceConnector;
 
