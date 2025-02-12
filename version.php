@@ -28,5 +28,5 @@ $plugin->version = 2025021200; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires = 2021052500; // Requires this Moodle version.
 $plugin->component = 'enrol_lticoursetemplate'; // Full name of the plugin (used for diagnostics).
 $plugin->dependencies = [
-    'auth_lti' => 2024100100, // The auth_lti authentication plugin version 2021100500 or higher must be present.
+    'auth_lti' => 2024042200, // The auth_lti authentication plugin version 2024042200 or higher must be present.
 ];
