@@ -1,7 +1,7 @@
 <?php
 
-require_once($CFG->dirroot . '/enrol/lti/ims-blti/OAuth.php');
-require_once($CFG->dirroot . '/enrol/lti/ims-blti/TrivialOAuthDataStore.php');
+require_once($CFG->dirroot . '/enrol/lticoursetemplate/ims-blti/OAuth.php');
+require_once($CFG->dirroot . '/enrol/lticoursetemplate/ims-blti/TrivialOAuthDataStore.php');
 
 // Returns true if this is a Basic LTI message
 // with minimum values to meet the protocol
