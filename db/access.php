@@ -18,7 +18,7 @@
  * Capabilities for LTI enrolment plugin.
  *
  * @package enrol_lticoursetemplate
- * @copyright 2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright 2016 Mark Nelson <markn@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -44,5 +44,4 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
         )
     ),
-
 );

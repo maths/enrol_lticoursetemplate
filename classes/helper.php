@@ -18,7 +18,7 @@
  * LTI enrolment plugin helper.
  *
  * @package enrol_lticoursetemplate
- * @copyright 2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright 2016 Mark Nelson <markn@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,11 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * LTI enrolment plugin helper class.
  *
  * @package enrol_lticoursetemplate
- * @copyright 2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright 2016 Mark Nelson <markn@moodle.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class helper {
-
     /*
      * The value used when we want to enrol new members and unenrol old ones.
      */
@@ -92,7 +91,7 @@ class helper {
             $userkey = $consumerkey . ':' . $ltiuserid;
             return 'enrol_lticoursetemplate' . sha1($consumerkey . '::' . $userkey);
         } else {
-            throw new moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
+            throw new \moodle_exception('usernamecreateerror', 'enrol_lticoursetemplate');
             exit();
         }
     }
@@ -222,10 +221,13 @@ class helper {
 
         // Copy file to temporary location and the send it for processing icon.
         $newpicture = (int) process_new_icon($context, 'user', 'icon', 0, $iconfile);
+
         // Delete temporary file.
         @unlink($iconfile);
+
         // Remove uploaded file.
         $fs->delete_area_files($context->id, 'user', 'newicon');
+
         // Set the user's picture.
         $DB->set_field('user', 'picture', $newpicture, array('id' => $userid));
         return self::PROFILE_IMAGE_UPDATE_SUCCESSFUL;
@@ -249,10 +251,12 @@ class helper {
                     return self::ENROLMENT_MAX_ENROLLED;
                 }
             }
+            
             // Check if the enrolment has not started.
             if ($tool->enrolstartdate && time() < $tool->enrolstartdate) {
                 return self::ENROLMENT_NOT_STARTED;
             }
+            
             // Check if the enrolment has finished.
             if ($tool->enrolenddate && time() > $tool->enrolenddate) {
                 return self::ENROLMENT_FINISHED;
@@ -289,7 +293,7 @@ class helper {
         global $DB;
 
         $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
-                  FROM {enrol_lti_ct_tools} elt
+                  FROM {enrol_ct_tools} elt
                   JOIN {enrol} e
                     ON elt.enrolid = e.id
                  WHERE elt.id = :tid";
@@ -301,43 +305,47 @@ class helper {
      * Returns the LTI new tool and creates course.
      *
      * @param int $toolid - oldtool - the template course tool
+     * @param string $platform - custom parameter set in the platform (consumer), should be unique per platform
+     * @param string $label - course short name (label)
+     * @param string $title - course full name (title)
+     * @param bool $isinstructor - a flag for a user role
+     * 
      * @return \stdClass the tool
      */
-
     public static function get_lti_new_tool(
         $toolid,
-        $consumerkey = null,
-        $shortname = null,
-        $fullname = null,
+        $platform = null,
+        $label = null,
+        $title = null,
         $isinstructor = false
     ) {
         global $DB, $CFG;
         require_once($CFG->dirroot . "/lib/accesslib.php");
         require_once($CFG->dirroot . "/lib/setuplib.php");
 
-        // Consumer key is required.
-        if (!isset($consumerkey)) {
-            throw new moodle_exception('invalidconsumerkey', 'enrol_lticoursetemplate');
+        // Platform key is required.
+        if (!isset($platform)) {
+            throw new \moodle_exception('invalidplatform', 'enrol_lticoursetemplate');
         }
 
-        // Shortname is required.
-        if (!isset($shortname)) {
-            throw new moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
+        // Label (shortname) is required.
+        if (!isset($label)) {
+            throw new \moodle_exception('invalidshortname', 'enrol_lticoursetemplate');
         }
 
-        // Construct "unique" shortane.
-        $shortname = $consumerkey.'_'.$shortname;
-        $fullname = isset($fullname) ? $fullname : $shortname;
+        // Construct "unique" shortname.
+        $shortname = $platform.'_'.$label;
+        $fullname = isset($title) ? $title : $shortname;
 
         // Get the old tool.
         $oldtool = self::get_lti_tool($toolid);
 
         // Check if the course exists.
-        $coursecheck = $DB->get_record('enrol_lti_ct_courses', array('shortname' => $shortname), '*');
+        $coursecheck = $DB->get_record('enrol_ct_courses', array('shortname' => $shortname), '*');
 
         if (!$coursecheck) {
             // Should we allow students to create courses?
-            if (!$isinstructor) {
+            if (!$isinstructor){
                 redirect('/enrol/lticoursetemplate/notready.php');
             }
 
@@ -352,40 +360,33 @@ class helper {
             // Switch to the new course.
             $course = $DB->get_record('course', array('id' => $duplicate['id']), '*');
 
-            // Save the course in the plugin table.
-            $dataobject = new \stdClass();
-            $dataobject->courseid = $course->id;
-            $dataobject->shortname = $course->shortname;
-            $DB->insert_record('enrol_lti_ct_courses', $dataobject, false);
-
-            unset($dataobject);
-
             // Get new context.
             $context = \context_course::instance($course->id, MUST_EXIST);
 
             // Remove duplicated enrol instance that is not added to the plugin table (backup issue).
-            $DB->delete_records('enrol', array('courseid' => $course->id, 'enrol' => 'lticoursetemplate'));
+            $DB->delete_records('enrol', array('courseid' => $course->id, 'enrol'=>'lticoursetemplate'));
 
-            // Enable lticoursetemplate enrol the right way - this is necessary!
-            $record['enrol'] = 'lticoursetemplate';
-            $record['status'] = 0;
-            $record['courseid'] = $course->id;
-            $record['contextid'] = $context->id;
-            $record['name'] = 'LTI CT Connection';
-            $record['gradesync'] = 1;
-            $record['gradesynccompletion'] = 0;
-            $record['timecreated'] = time();
-            $record['timemodified'] = time();
-            $record['roleinstructor'] = 3;
-            $record['rolelearner'] = 5;
-            $record['secret'] = $oldtool->secret;
-            $record['membersync'] = 0;
-            // Not sure why we don't need this one:  $record['membersyncmode'] = 1.
+            // Add new instance of enrol plugin.
+            $instanceid = $plugin->add_instance($course,[
+                'contextid' => $context->id, 
+                'roleinstructor' => $oldtool->roleinstructor, 
+                'rolelearner' => $oldtool->rolelearner,
+                'provisioningmodelearner' => $oldtool->provisioningmodelearner,
+                'provisioningmodeinstructor' => $oldtool->provisioningmodeinstructor,
+                'membersyncmode' => $oldtool->membersyncmode,
+                'gradesync' => $oldtool->gradesync
+            ]);
 
-            $toolinstance = $plugin->add_instance($course, $record);
+            // Save the course in the plugin table.
+            $dataobject = new \stdClass();
+            $dataobject->courseid = $course->id;
+            $dataobject->shortname = $course->shortname;
+            $DB->insert_record('enrol_ct_courses', $dataobject, false);
+
+            unset($dataobject);
 
             // Switch to the new tool.
-            $tool = $DB->get_record('enrol_lti_ct_tools', array('enrolid' => $toolinstance), '*');
+            $tool = $DB->get_record('enrol_ct_tools', array('enrolid' => $instanceid), '*');
         } else {
             // Get the course.
             $course = $DB->get_record('course', array('id' => $coursecheck->courseid), '*');
@@ -393,12 +394,11 @@ class helper {
             // Switch the tool to the existing course.
             $context = \context_course::instance($course->id, MUST_EXIST);
 
-            // User can add more lticoursetemplate connections later but SHOULD NOT.
-            $tool = $DB->get_record('enrol_lti_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
+            // get the tool.
+            $tool = $DB->get_record('enrol_ct_tools', array('contextid' => $context->id), '*', IGNORE_MULTIPLE);
         }
 
         return self::get_lti_tool($tool->id);
-        ;
     }
 
     /**
@@ -413,7 +413,7 @@ class helper {
         global $DB;
 
         $sql = "SELECT elt.*, e.name, e.courseid, e.status, e.enrolstartdate, e.enrolenddate, e.enrolperiod
-                  FROM {enrol_lti_ct_tools} elt
+                  FROM {enrol_ct_tools} elt
                   JOIN {enrol} e
                     ON elt.enrolid = e.id";
         if ($params) {
@@ -438,7 +438,7 @@ class helper {
         global $DB;
 
         $sql = "SELECT COUNT(*)
-                  FROM {enrol_lti_ct_tools} elt
+                  FROM {enrol_ct_tools} elt
                   JOIN {enrol} e
                     ON elt.enrolid = e.id";
         if ($params) {
@@ -484,5 +484,287 @@ class helper {
                 </replaceResultRequest>
               </imsx_POXBody>
             </imsx_POXEnvelopeRequest>';
+    }
+
+    /**
+     * Returns the url to launch the lticoursetemplate tool.
+     *
+     * @param int $toolid the id of the shared tool
+     * @return \moodle_url the url to launch the tool
+     * @since Moodle 3.2
+     */
+    public static function get_launch_url($toolid) {
+        return new \moodle_url('/enrol/lticoursetemplate/tooltemplate.php', array('id' => $toolid));
+    }
+
+    /**
+     * Returns the name of the lticoursetemplate enrolment instance, or the name of the course/module being shared.
+     *
+     * @param \stdClass $tool The lticoursetemplate tool
+     * @return string The name of the tool
+     * @since Moodle 3.2
+     */
+    public static function get_name($tool) {
+        $name = null;
+
+        if (empty($tool->name)) {
+            $toolcontext = \context::instance_by_id($tool->contextid);
+            $name = $toolcontext->get_context_name();
+        } else {
+            $name = $tool->name;
+        };
+
+        return $name;
+    }
+
+    /**
+     * Returns a description of the course or module that this lticoursetemplate instance points to.
+     *
+     * @param \stdClass $tool The lticoursetemplate tool
+     * @return string A description of the tool
+     * @since Moodle 3.2
+     */
+    public static function get_description($tool) {
+        global $DB;
+        $description = '';
+        $context = \context::instance_by_id($tool->contextid);
+        if ($context->contextlevel == CONTEXT_COURSE) {
+            $course = $DB->get_record('course', array('id' => $context->instanceid));
+            $description = $course->summary;
+        } else if ($context->contextlevel == CONTEXT_MODULE) {
+            $cmid = $context->instanceid;
+            $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+            $module = $DB->get_record($cm->modname, array('id' => $cm->instance));
+            $description = $module->intro;
+        }
+        return trim(html_to_text($description));
+    }
+
+    /**
+     * Returns the icon of the tool.
+     *
+     * @param \stdClass $tool The lticoursetemplate tool
+     * @return \moodle_url A url to the icon of the tool
+     * @since Moodle 3.2
+     */
+    public static function get_icon($tool) {
+        global $OUTPUT;
+        return $OUTPUT->favicon();
+    }
+
+    /**
+     * Returns the url to the cartridge representing the tool.
+     *
+     * If you have slash arguments enabled, this will be a nice url ending in cartridge.xml.
+     * If not it will be a php page with some parameters passed.
+     *
+     * @param \stdClass $tool The lticoursetemplate tool
+     * @return string The url to the cartridge representing the tool
+     * @since Moodle 3.2
+     */
+    public static function get_cartridge_url($tool) {
+        global $CFG;
+        $url = null;
+
+        $id = $tool->id;
+        $token = self::generate_cartridge_token($tool->id);
+        if ($CFG->slasharguments) {
+            $url = new \moodle_url('/enrol/lticoursetemplate/cartridge.php/' . $id . '/' . $token . '/cartridge.xml');
+        } else {
+            $url = new \moodle_url('/enrol/lticoursetemplate/cartridge.php',
+                    array(
+                        'id' => $id,
+                        'token' => $token
+                    )
+                );
+        }
+        return $url;
+    }
+
+    /**
+     * Returns the url to the tool proxy registration url.
+     *
+     * If you have slash arguments enabled, this will be a nice url ending in cartridge.xml.
+     * If not it will be a php page with some parameters passed.
+     *
+     * @param \stdClass $tool The lticoursetemplate tool
+     * @return string The url to the cartridge representing the tool
+     */
+    public static function get_proxy_url($tool) {
+        global $CFG;
+        $url = null;
+
+        $id = $tool->id;
+        $token = self::generate_proxy_token($tool->id);
+        if ($CFG->slasharguments) {
+            $url = new \moodle_url('/enrol/lticoursetemplate/proxy.php/' . $id . '/' . $token . '/');
+        } else {
+            $url = new \moodle_url('/enrol/lticoursetemplate/proxy.php',
+                    array(
+                        'id' => $id,
+                        'token' => $token
+                    )
+                );
+        }
+        return $url;
+    }
+
+    /**
+     * Returns a unique hash for this site and this enrolment instance.
+     *
+     * Used to verify that the link to the cartridge has not just been guessed.
+     *
+     * @param int $toolid The id of the shared tool
+     * @return string MD5 hash of combined site ID and enrolment instance ID.
+     * @since Moodle 3.2
+     */
+    public static function generate_cartridge_token($toolid) {
+        $siteidentifier = get_site_identifier();
+        $checkhash = md5($siteidentifier . '_enrol_lticoursetemplate_cartridge_' . $toolid);
+        return $checkhash;
+    }
+
+    /**
+     * Returns a unique hash for this site and this enrolment instance.
+     *
+     * Used to verify that the link to the proxy has not just been guessed.
+     *
+     * @param int $toolid The id of the shared tool
+     * @return string MD5 hash of combined site ID and enrolment instance ID.
+     * @since Moodle 3.2
+     */
+    public static function generate_proxy_token($toolid) {
+        $siteidentifier = get_site_identifier();
+        $checkhash = md5($siteidentifier . '_enrol_lticoursetemplate_proxy_' . $toolid);
+        return $checkhash;
+    }
+
+    /**
+     * Verifies that the given token matches the cartridge token of the given shared tool.
+     *
+     * @param int $toolid The id of the shared tool
+     * @param string $token hash for this site and this enrolment instance
+     * @return boolean True if the token matches, false if it does not
+     * @since Moodle 3.2
+     */
+    public static function verify_cartridge_token($toolid, $token) {
+        return $token == self::generate_cartridge_token($toolid);
+    }
+
+    /**
+     * Verifies that the given token matches the proxy token of the given shared tool.
+     *
+     * @param int $toolid The id of the shared tool
+     * @param string $token hash for this site and this enrolment instance
+     * @return boolean True if the token matches, false if it does not
+     * @since Moodle 3.2
+     */
+    public static function verify_proxy_token($toolid, $token) {
+        return $token == self::generate_proxy_token($toolid);
+    }
+
+    /**
+     * Returns the parameters of the cartridge as an associative array of partial xpath.
+     *
+     * @param int $toolid The id of the shared tool
+     * @return array Recursive associative array with partial xpath to be concatenated into an xpath expression
+     *     before setting the value.
+     * @since Moodle 3.2
+     */
+    protected static function get_cartridge_parameters($toolid) {
+        global $PAGE, $SITE;
+        $PAGE->set_context(\context_system::instance());
+
+        // Get the tool.
+        $tool = self::get_lti_tool($toolid);
+
+        // Work out the name of the tool.
+        $title = self::get_name($tool);
+        $launchurl = self::get_launch_url($toolid);
+        $launchurl = $launchurl->out(false);
+        $iconurl = self::get_icon($tool);
+        $iconurl = $iconurl->out(false);
+        $securelaunchurl = null;
+        $secureiconurl = null;
+        $vendorurl = new \moodle_url('/');
+        $vendorurl = $vendorurl->out(false);
+        $description = self::get_description($tool);
+
+        // If we are a https site, we can add the launch url and icon urls as secure equivalents.
+        if (\is_https()) {
+            $securelaunchurl = $launchurl;
+            $secureiconurl = $iconurl;
+        }
+
+        return array(
+                "/cc:cartridge_basiclti_link" => array(
+                    "/blti:title" => $title,
+                    "/blti:description" => $description,
+                    "/blti:extensions" => array(
+                            "/lticm:property[@name='icon_url']" => $iconurl,
+                            "/lticm:property[@name='secure_icon_url']" => $secureiconurl
+                        ),
+                    "/blti:launch_url" => $launchurl,
+                    "/blti:secure_launch_url" => $securelaunchurl,
+                    "/blti:icon" => $iconurl,
+                    "/blti:secure_icon" => $secureiconurl,
+                    "/blti:vendor" => array(
+                            "/lticp:code" => $SITE->shortname,
+                            "/lticp:name" => $SITE->fullname,
+                            "/lticp:description" => trim(html_to_text($SITE->summary)),
+                            "/lticp:url" => $vendorurl
+                        )
+                )
+            );
+    }
+
+    /**
+     * Traverses a recursive associative array, setting the properties of the corresponding
+     * xpath element.
+     *
+     * @param \DOMXPath $xpath The xpath with the xml to modify
+     * @param array $parameters The array of xpaths to search through
+     * @param string $prefix The current xpath prefix (gets longer the deeper into the array you go)
+     * @return void
+     * @since Moodle 3.2
+     */
+    protected static function set_xpath($xpath, $parameters, $prefix = '') {
+        foreach ($parameters as $key => $value) {
+            if (is_array($value)) {
+                self::set_xpath($xpath, $value, $prefix . $key);
+            } else {
+                $result = @$xpath->query($prefix . $key);
+                if ($result) {
+                    $node = $result->item(0);
+                    if ($node) {
+                        if (is_null($value)) {
+                            $node->parentNode->removeChild($node);
+                        } else {
+                            $node->nodeValue = s($value);
+                        }
+                    }
+                } else {
+                    throw new \coding_exception('Please check your XPATH and try again.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Create an IMS cartridge for the tool.
+     *
+     * @param int $toolid The id of the shared tool
+     * @return string representing the generated cartridge
+     * @since Moodle 3.2
+     */
+    public static function create_cartridge($toolid) {
+        $cartridge = new \DOMDocument();
+        $cartridge->load(realpath(__DIR__ . '/../xml/imslticc.xml'));
+        $xpath = new \DOMXpath($cartridge);
+        $xpath->registerNamespace('cc', 'http://www.imsglobal.org/xsd/imslticc_v1p0');
+        $parameters = self::get_cartridge_parameters($toolid);
+        self::set_xpath($xpath, $parameters);
+
+        return $cartridge->saveXML();
     }
 }

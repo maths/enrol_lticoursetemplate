@@ -18,19 +18,17 @@
  * Handles synchronising grades for the enrolment LTI.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace enrol_lticoursetemplate\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Task for synchronising grades for the enrolment LTI.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class sync_grades extends \core\task\scheduled_task {
@@ -72,7 +70,8 @@ class sync_grades extends \core\task\scheduled_task {
         }
 
         // Get all the enabled tools.
-        if ($tools = \enrol_lticoursetemplate\helper::get_lti_tools(array('status' => ENROL_INSTANCE_ENABLED, 'gradesync' => 1))) {
+        if ($tools = \enrol_lticoursetemplate\helper::get_lti_tools(array('status' => ENROL_INSTANCE_ENABLED, 'gradesync' => 1,
+            'ltiversion' => 'LTI-1p0/LTI-2p0'))) {
             foreach ($tools as $tool) {
                 mtrace("Starting - Grade sync for shared tool '$tool->id' for the course '$tool->courseid'.");
 
@@ -81,7 +80,7 @@ class sync_grades extends \core\task\scheduled_task {
                 $sendcount = 0;
 
                 // We check for all the users - users can access the same tool from different consumers.
-                if ($ltiusers = $DB->get_records('enrol_lti_ct_users', array('toolid' => $tool->id), 'lastaccess DESC')) {
+                if ($ltiusers = $DB->get_records('enrol_ct_users', array('toolid' => $tool->id), 'lastaccess DESC')) {
                     $completion = new \completion_info(get_course($tool->courseid));
                     foreach ($ltiusers as $ltiuser) {
                         $mtracecontent = "for the user '$ltiuser->userid' in the tool '$tool->id' for the course " .
@@ -102,7 +101,7 @@ class sync_grades extends \core\task\scheduled_task {
                         }
 
                         // Need a valid context to continue.
-                        if (!$context = \context::instance_by_id($tool->contextid)) {
+                        if (!$context = \context::instance_by_id($tool->contextid, IGNORE_MISSING)) {
                             mtrace("Failed - Invalid contextid '$tool->contextid' for the tool '$tool->id'.");
                             continue;
                         }
@@ -156,8 +155,8 @@ class sync_grades extends \core\task\scheduled_task {
                             continue;
                         }
 
-                        // This can happen if the sync process has an unexpected error.
-                        if ($grade == $ltiuser->lastgrade) {
+                        // Check to see if the grade has changed.
+                        if (!grade_floats_different($grade, $ltiuser->lastgrade)) {
                             mtrace("Not sent - The grade $mtracecontent was not sent as the grades are the same.");
                             continue;
                         }
@@ -176,7 +175,7 @@ class sync_grades extends \core\task\scheduled_task {
                         }
 
                         if (strpos(strtolower($response), 'success') !== false) {
-                            $DB->set_field('enrol_lti_ct_users', 'lastgrade', intval($grade), array('id' => $ltiuser->id));
+                            $DB->set_field('enrol_ct_users', 'lastgrade', grade_floatval($grade), array('id' => $ltiuser->id));
                             mtrace("Success - The grade '$floatgrade' $mtracecontent was sent.");
                             $sendcount = $sendcount + 1;
                         } else {

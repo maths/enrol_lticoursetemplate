@@ -18,7 +18,7 @@
  * Displays enrolment LTI instances.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -34,7 +34,7 @@ require_once($CFG->libdir . '/tablelib.php');
  * Handles displaying enrolment LTI instances.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manage_table extends \table_sql {
@@ -65,18 +65,18 @@ class manage_table extends \table_sql {
      * @param string $courseid The id of the course.
      */
     public function __construct($courseid) {
-        parent::__construct('enrol_lticoursetemplate_manage_table');
+        parent::__construct('enrol_ct_manage_table');
 
         $this->define_columns(array(
             'name',
-            'url',
-            'secret',
+            'launch',
+            'registration',
             'edit'
         ));
         $this->define_headers(array(
             get_string('name'),
-            get_string('url'),
-            get_string('secret', 'enrol_lticoursetemplate'),
+            get_string('launchdetails', 'enrol_lticoursetemplate'),
+            get_string('registrationurl', 'enrol_lticoursetemplate'),
             get_string('edit')
         ));
         $this->collapsible(false);
@@ -87,6 +87,11 @@ class manage_table extends \table_sql {
         $this->ltienabled = enrol_is_enabled('lticoursetemplate');
         $this->canconfig = has_capability('moodle/course:enrolconfig', \context_course::instance($courseid));
         $this->courseid = $courseid;
+
+        // Set help icons.
+        $launchicon = new \help_icon('launchdetails', 'enrol_lticoursetemplate');
+        $regicon = new \help_icon('registrationurl', 'enrol_lticoursetemplate');
+        $this->define_help_for_headers(['1' => $launchicon, '2' => $regicon]);
     }
 
     /**
@@ -96,37 +101,65 @@ class manage_table extends \table_sql {
      * @return string
      */
     public function col_name($tool) {
-        if (empty($tool->name)) {
-            $toolcontext = \context::instance_by_id($tool->contextid);
-            $name = $toolcontext->get_context_name();
-        } else {
-            $name = $tool->name;
-        };
+        $name = helper::get_name($tool);
 
         return $this->get_display_text($tool, $name);
     }
 
     /**
-     * Generate the URL column.
+     * Generate the launch column.
      *
-     * @param \stdClass $tool event data.
+     * @param \stdClass $tool instance data.
      * @return string
      */
-    public function col_url($tool) {
-        $url = new \moodle_url('/enrol/lticoursetemplate/tooltemplate.php', array('id' => $tool->id));
-        return $this->get_display_text($tool, $url);
+    public function col_launch($tool) {
+        global $OUTPUT;
+
+        $url = helper::get_cartridge_url($tool);
+
+        $cartridgeurllabel = get_string('cartridgeurl', 'enrol_lticoursetemplate');
+        $cartridgeurl = $url;
+        $secretlabel = get_string('secret', 'enrol_lticoursetemplate');
+        $secret = $tool->secret;
+        $launchurl = helper::get_launch_url($tool->id);
+        $launchurllabel = get_string('launchurl', 'enrol_lticoursetemplate');
+
+        $data = [
+                "rows" => [
+                    [ "label" => $cartridgeurllabel, "text" => $cartridgeurl, "id" => "cartridgeurl", "hidelabel" => false ],
+                    [ "label" => $secretlabel, "text" => $secret, "id" => "secret", "hidelabel" => false ],
+                    [ "label" => $launchurllabel, "text" => $launchurl, "id" => "launchurl", "hidelabel" => false ],
+                ]
+            ];
+
+        $return = $OUTPUT->render_from_template("enrol_lticoursetemplate/copy_grid", $data);
+
+        return $return;
     }
 
     /**
-     * Generate the secret column.
+     * Generate the Registration column.
      *
-     * @param \stdClass $tool event data.
+     * @param \stdClass $tool instance data.
      * @return string
      */
-    public function col_secret($tool) {
-        return $this->get_display_text($tool, $tool->secret);
-    }
+    public function col_registration($tool) {
+        global $OUTPUT;
 
+        $url = helper::get_proxy_url($tool);
+
+        $toolurllabel = get_string("registrationurl", "enrol_lticoursetemplate");
+        $toolurl = $url;
+
+        $data = [
+                "rows" => [
+                    [ "label" => $toolurllabel, "text" => $toolurl, "id" => "toolurl" , "hidelabel" => true],
+                ]
+            ];
+
+        $return = $OUTPUT->render_from_template("enrol_lticoursetemplate/copy_grid", $data);
+        return $return;
+    }
 
     /**
      * Generate the edit column.
@@ -149,7 +182,8 @@ class manage_table extends \table_sql {
         $strenable = get_string('enable');
         $strdisable = get_string('disable');
 
-        $url = new \moodle_url('/enrol/lticoursetemplate/index.php', array('sesskey' => sesskey(), 'courseid' => $this->courseid));
+        $url = new \moodle_url('/enrol/lticoursetemplate/index.php',
+            array('sesskey' => sesskey(), 'courseid' => $this->courseid, 'legacy' => 1));
 
         if ($this->ltiplugin->can_delete_instance($instance)) {
             $aurl = new \moodle_url($url, array('action' => 'delete', 'instanceid' => $instance->id));
@@ -172,8 +206,11 @@ class manage_table extends \table_sql {
         if ($this->ltienabled && $this->canconfig) {
             $linkparams = array(
                 'courseid' => $instance->courseid,
-                'id' => $instance->id, 'type' => $instance->enrol,
-                'returnurl' => new \moodle_url('/enrol/lticoursetemplate/index.php', array('courseid' => $this->courseid))
+                'id' => $instance->id,
+                'type' => $instance->enrol,
+                'legacy' => 1,
+                'returnurl' => new \moodle_url('/enrol/lticoursetemplate/index.php',
+                    array('courseid' => $this->courseid, 'legacy' => 1))
             );
             $editlink = new \moodle_url("/enrol/editinstance.php", $linkparams);
             $buttons[] = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit'), 'core',
@@ -190,10 +227,10 @@ class manage_table extends \table_sql {
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
     public function query_db($pagesize, $useinitialsbar = true) {
-        $total = \enrol_lticoursetemplate\helper::count_lti_tools(array('courseid' => $this->courseid));
+        $total = \enrol_lticoursetemplate\helper::count_lti_tools(['courseid' => $this->courseid, 'ltiversion' => 'LTI-1p0/LTI-2p0']);
         $this->pagesize($pagesize, $total);
-        $tools = \enrol_lticoursetemplate\helper::get_lti_tools(array('courseid' => $this->courseid), $this->get_page_start(),
-            $this->get_page_size());
+        $tools = \enrol_lticoursetemplate\helper::get_lti_tools(['courseid' => $this->courseid, 'ltiversion' => 'LTI-1p0/LTI-2p0'],
+            $this->get_page_start(), $this->get_page_size());
         $this->rawdata = $tools;
         // Set initial bars.
         if ($useinitialsbar) {

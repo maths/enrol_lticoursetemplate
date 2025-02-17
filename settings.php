@@ -18,16 +18,21 @@
  * General plugin functions.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_lticoursetemplate\local\ltiadvantage\admin\admin_setting_registeredplatforms;
+
 defined('MOODLE_INTERNAL') || die;
+// The 'Publish as LTI Course Template tool' node is a category.
+$ADMIN->add('enrolments', new admin_category('enrollticoursetemplatefolder', new lang_string('pluginname', 'enrol_lticoursetemplate'),
+    $this->is_enabled() === false));
 
+$settings = new admin_settingpage($section, "User default values", 'moodle/site:config', $this->is_enabled() === false);
+// Add all the user default values settings to the first page.
 if ($ADMIN->fulltree) {
-
-    $settings->add(new admin_setting_heading('enrol_lticoursetemplate_settings', '', get_string('pluginname_desc',
-            'enrol_lticoursetemplate')));
+    $settings->add(new admin_setting_heading('enrol_lticoursetemplate_settings', '', get_string('pluginname_desc', 'enrol_lticoursetemplate')));
 
     if (!is_enabled_auth('lti')) {
         $notify = new \core\output\notification(get_string('authltimustbeenabled', 'enrol_lticoursetemplate'),
@@ -48,8 +53,8 @@ if ($ADMIN->fulltree) {
                      1 => get_string('emaildisplayyes'),
                      2 => get_string('emaildisplaycourse'));
     $maildisplay = isset($CFG->defaultpreference_maildisplay) ? $CFG->defaultpreference_maildisplay : 2;
-    $settings->add(new admin_setting_configselect('enrol_lticoursetemplate/emaildisplay', get_string('emaildisplay'), '',
-        $maildisplay, $choices));
+    $settings->add(new admin_setting_configselect('enrol_lticoursetemplate/emaildisplay', get_string('emaildisplay'),
+        get_string('emaildisplay_help'), $maildisplay, $choices));
 
     $city = '';
     if (!empty($CFG->defaultcity)) {
@@ -83,3 +88,28 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_lticoursetemplate/manager', get_string('manager',
             'enrol_lticoursetemplate'), get_string('manager_help', 'enrol_lticoursetemplate'), $manager, PARAM_INT));
 }
+$ADMIN->add('enrollticoursetemplatefolder', $settings);
+
+// Now, create a tool registrations settings page.
+$settings = new admin_settingpage('enrolsettingsltict_registrations', "Tool registration", 'moodle/site:config',
+    $this->is_enabled() === false);
+
+$settings->add(new admin_setting_heading('enrol_ct_tool_registrations_heading',
+    get_string('registeredplatforms', 'enrol_lticoursetemplate'), ''));
+$settings->add(new admin_setting_registeredplatforms());
+
+$ADMIN->add('enrollticoursetemplatefolder', $settings);
+
+// This adds a settings page to the 'publish as LTI Course Template tool' folder, hidden.
+// On this page, we'll  override the active node to force a match on enrolsettingsltict_registrations settings page.
+$ADMIN->add('enrollticoursetemplatefolder', new admin_externalpage('enrolsettingsltict_registrations_edit',
+    get_string('registerplatformadd', 'enrol_lticoursetemplate'), "$CFG->wwwroot/$CFG->admin/enrol/lticoursetemplate/register_platform.php",
+    'moodle/site:config', true));
+
+// And deployments add/edit.
+$ADMIN->add('enrollticoursetemplatefolder', new admin_externalpage('enrolsettingsltict_deployment_manage',
+    get_string('deployments', 'enrol_lticoursetemplate'), "$CFG->wwwroot/$CFG->admin/enrol/lticoursetemplate/manage_deployment.php",
+    'moodle/site:config', true));
+
+// Tell core we're finished.
+$settings = null;

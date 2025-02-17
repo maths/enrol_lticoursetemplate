@@ -18,11 +18,9 @@
  * Enrol LTI tasks.
  *
  * @package    enrol_lticoursetemplate
- * @copyright  2016 Mark Nelson <markn@moodle.com> 2017 Arek Juszczyk <arek.juszczyk@ed.ac.uk>
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
 
 $tasks = array(
     array(
@@ -36,6 +34,24 @@ $tasks = array(
     ),
     array(
         'classname' => 'enrol_lticoursetemplate\task\sync_members',
+        'blocking' => 0,
+        'minute' => '*/30',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ),
+    array(
+        'classname' => 'enrol_lticoursetemplate\local\ltiadvantage\task\sync_members',
+        'blocking' => 0,
+        'minute' => '*/30',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ),
+    array(
+        'classname' => 'enrol_lticoursetemplate\local\ltiadvantage\task\sync_grades',
         'blocking' => 0,
         'minute' => '*/30',
         'hour' => '*',
